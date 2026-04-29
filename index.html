@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owner — Applied AI Opportunity Board</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            owner: {
+              50:  '#EFF7F2',
+              100: '#DCEDE2',
+              200: '#BADCC7',
+              300: '#8FC3A6',
+              400: '#5FA483',
+              500: '#3D8862',
+              600: '#2D8659',
+              700: '#236B47',
+              800: '#1D5639',
+              900: '#16402B',
+            },
+            ink: {
+              50:  '#FAFAF7',
+              100: '#F2F2EC',
+              200: '#E6E6DD',
+              300: '#D0D0C2',
+              400: '#A0A091',
+              500: '#6F6F62',
+              600: '#4F4F46',
+              700: '#363632',
+              800: '#1F1F1C',
+              900: '#0F0F0E',
+            },
+            sky2: {
+              50:  '#F0F6FB',
+              100: '#DDEBF6',
+              200: '#BCD7ED',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-feature-settings: 'cv11', 'ss01';
+      background: #FAFAF7;
+    }
+    .serif { font-family: 'Fraunces', Georgia, serif; font-feature-settings: 'ss01'; letter-spacing: -0.01em; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #E6E6DD; border-radius: 6px; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: #D0D0C2; background-clip: padding-box; border: 2px solid transparent; }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .shimmer {
+      background: linear-gradient(90deg, #F2F2EC 0%, #E6E6DD 50%, #F2F2EC 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s linear infinite;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in { animation: fadeIn 0.25s ease-out; }
+    .ring-card {
+      box-shadow: 0 1px 2px 0 rgba(15, 15, 14, 0.04), 0 1px 3px 0 rgba(15, 15, 14, 0.04);
+    }
+    .ring-card:hover {
+      box-shadow: 0 2px 4px 0 rgba(15, 15, 14, 0.04), 0 4px 12px -2px rgba(15, 15, 14, 0.08);
+    }
+  </style>
+</head>
+<body class="text-ink-900 antialiased">
+  <div id="root"></div>
+  <div id="error-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;font-family:ui-monospace,monospace;background:#fff;border-bottom:2px solid #ef4444;padding:20px 24px;max-height:50vh;overflow:auto;"></div>
+  <script>
+    let __firstError = null;
+    function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+    function showError(label, err) {
+      if (__firstError) return;
+      __firstError = err;
+      const banner = document.getElementById('error-banner');
+      if (!banner) return;
+      const msg = (err && err.message) || (typeof err === 'string' ? err : 'unknown');
+      const stack = (err && err.stack) || '(no stack)';
+      banner.innerHTML =
+        '<div style="color:#b91c1c;font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">' + label + '</div>' +
+        '<div style="color:#7f1d1d;font-size:14px;font-weight:600;margin-bottom:12px;white-space:pre-wrap;background:#fef2f2;padding:10px 12px;border-radius:6px;border-left:3px solid #ef4444;line-height:1.5;">' + escapeHtml(msg) + '</div>' +
+        '<details><summary style="color:#6b6b5f;font-size:11px;cursor:pointer;user-select:none;">stack</summary>' +
+        '<pre style="color:#6b6b5f;font-size:10.5px;line-height:1.55;white-space:pre-wrap;margin-top:8px;">' + escapeHtml(stack) + '</pre></details>';
+      banner.style.display = 'block';
+    }
+    window.addEventListener('error', (e) => showError('Runtime error', e.error || { message: e.message }));
+    window.addEventListener('unhandledrejection', (e) => showError('Unhandled promise rejection', e.reason));
+  </script>
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // -------------------------------------------------------------------
+    // Static config
+    // -------------------------------------------------------------------
+    const TEAMS = [
+      { id: 'bizops',     name: 'BizOps',     dot: '#3B82F6' },
+      { id: 'revops',     name: 'RevOps',     dot: '#8B5CF6' },
+      { id: 'sales',      name: 'Sales',      dot: '#F97316' },
+      { id: 'marketing',  name: 'Marketing',  dot: '#EC4899' },
+      { id: 'growth',     name: 'Growth',     dot: '#2D8659' },
+      { id: 'product',    name: 'Product',    dot: '#0EA5E9' },
+      { id: 'finance',    name: 'Finance',    dot: '#D97706' },
+      { id: 'recruiting', name: 'Recruiting', dot: '#E11D48' },
+      { id: 'applied-ai', name: 'Applied AI', dot: '#7C3AED' },
+    ];
+
+    const ROI = {
+      high:        { label: 'High',        emoji: '🔥', tone: 'text-orange-700 bg-orange-50 border-orange-200', score: 3 },
+      medium:      { label: 'Medium',      emoji: '⚡', tone: 'text-amber-800 bg-amber-50 border-amber-200',   score: 2 },
+      exploratory: { label: 'Exploratory', emoji: '🌱', tone: 'text-owner-700 bg-owner-50 border-owner-200',   score: 1 },
+    };
+
+    const EFFORT = {
+      Days:   { tone: 'text-owner-700 bg-owner-50 border-owner-200', score: 1, phase: 'Now' },
+      Weeks:  { tone: 'text-sky-700 bg-sky2-50 border-sky2-200',     score: 2, phase: 'Next' },
+      Months: { tone: 'text-violet-700 bg-violet-50 border-violet-200', score: 3, phase: 'Later' },
+    };
+
+    const STATUSES = ['Backlog', 'In Progress', 'Shipped'];
+    const STATUS_TONE = {
+      'Backlog':     'text-ink-600 bg-ink-100 border-ink-200',
+      'In Progress': 'text-blue-700 bg-blue-50 border-blue-200',
+      'Shipped':     'text-owner-700 bg-owner-50 border-owner-200',
+    };
+
+    const teamById = (id) => TEAMS.find(t => t.id === id) || TEAMS[0];
+
+    // -------------------------------------------------------------------
+    // Seed data — illustrative AI opportunities for Owner.com
+    // -------------------------------------------------------------------
+    const SEED = [
+      {
+        id: 'c1', name: 'Churn-Risk Call Scorer', teamId: 'sales',
+        problem: 'Restaurant owners signal churn weeks before they cancel — frustration, competitor mentions, billing complaints — but reps miss it in real time.',
+        approach: 'Whisper transcription + LLM classification with structured output for risk signals; routes high-risk calls to RevOps within 5 minutes.',
+        roi: 'high', effort: 'Weeks', status: 'In Progress',
+      },
+      {
+        id: 'c2', name: 'SEO Gap Agent', teamId: 'marketing',
+        problem: 'Competitor restaurant-tech sites are out-ranking Owner on long-tail queries that drive demo signups. Manual gap analysis takes weeks per vertical.',
+        approach: 'Agent with browser tools that crawls competitors, clusters their content, and auto-drafts optimized briefs with target keywords for our writers.',
+        roi: 'high', effort: 'Weeks', status: 'Backlog',
+      },
+      {
+        id: 'c3', name: 'Restaurant Churn Predictor', teamId: 'revops',
+        problem: 'Order volume and login frequency drop weeks before a restaurant churns, but no one is watching leading indicators across thousands of accounts.',
+        approach: 'Gradient-boosted model on usage telemetry + Stripe events; weekly LLM-summarized save plays delivered per at-risk account into Salesforce.',
+        roi: 'high', effort: 'Months', status: 'Backlog',
+      },
+      {
+        id: 'c4', name: 'Meeting → Action Items', teamId: 'bizops',
+        problem: 'Cross-functional meetings produce decisions and action items that get lost. Manual notetaking is inconsistent across teams.',
+        approach: 'Zoom transcript → LLM extraction with structured output → auto-piped into Linear/Asana with owner, due date, and source quote.',
+        roi: 'medium', effort: 'Days', status: 'Shipped',
+      },
+      {
+        id: 'c5', name: 'Resume → Rubric Scorer', teamId: 'recruiting',
+        problem: 'Recruiters spend hours screening resumes against rubrics for senior roles. Inter-rater scoring is wildly inconsistent.',
+        approach: 'LLM scoring against per-role rubric stored as YAML; outputs per-criterion score + rationale; eval harness measures agreement with hiring manager.',
+        roi: 'medium', effort: 'Weeks', status: 'Backlog',
+      },
+      {
+        id: 'c6', name: 'A/B Hypothesis Generator', teamId: 'growth',
+        problem: 'Growth experiments stall because PMs run out of well-formed hypotheses. Past wins and losses live scattered across docs and Slack.',
+        approach: 'RAG over historical experiment writeups + funnel data; agent proposes ranked hypotheses with priors and expected lift estimates.',
+        roi: 'medium', effort: 'Weeks', status: 'Backlog',
+      },
+      {
+        id: 'c7', name: 'Review Sentiment Tagger', teamId: 'product',
+        problem: 'Feature requests are buried in G2, Trustpilot, and support tickets. PMs miss themes until they are already loud complaints.',
+        approach: 'LLM classifier with structured output tags reviews by feature area + sentiment; weekly digest to Linear with example quotes.',
+        roi: 'medium', effort: 'Days', status: 'In Progress',
+      },
+      {
+        id: 'c8', name: 'Payout Anomaly Watch', teamId: 'finance',
+        problem: 'Restaurant payout calcs occasionally drift from fee changes or refund edge cases. Finance learns about it only when a customer escalates.',
+        approach: 'Time-series anomaly detection per merchant + LLM that drafts the customer-facing explanation email when an anomaly is confirmed by ops.',
+        roi: 'high', effort: 'Weeks', status: 'Backlog',
+      },
+      {
+        id: 'c9', name: 'Eval Harness Generator', teamId: 'applied-ai',
+        problem: 'Every new LLM feature ships without a real eval, so when prompts or models change we cannot tell what regressed in production.',
+        approach: 'Given a task spec, an agent generates input fixtures, expected behaviors, and graders (programmatic + LLM-judge) wired into CI.',
+        roi: 'high', effort: 'Weeks', status: 'In Progress',
+      },
+      {
+        id: 'c10', name: 'Pre-Call Restaurant Briefer', teamId: 'sales',
+        problem: 'AEs walk into discovery cold. Researching menu, hours, current POS, and recent reviews takes 20+ minutes per call.',
+        approach: 'Agent with web tools pulls menu, Google reviews, current tech stack; drafts a 1-page brief into Salesforce 5 minutes before the meeting.',
+        roi: 'high', effort: 'Weeks', status: 'Backlog',
+      },
+      {
+        id: 'c11', name: 'Internal Ops Q&A Bot', teamId: 'bizops',
+        problem: 'Onboarding and cross-team questions ("how do refunds work?", "who owns X?") clog Slack. SOPs exist but nobody finds them.',
+        approach: 'RAG over Notion + Slack archives with citations; eval set built from real Slack questions; deployed as a Slack bot with /ask.',
+        roi: 'medium', effort: 'Weeks', status: 'Backlog',
+      },
+      {
+        id: 'c12', name: 'Account Segment Auto-Tagger', teamId: 'revops',
+        problem: 'RevOps manually segments restaurants for plays — upsell, save, expansion. The segmentation goes stale within a quarter.',
+        approach: 'Embedding-based clustering on usage + firmographics; LLM generates segment names and suggested plays per cluster, refreshed weekly.',
+        roi: 'medium', effort: 'Months', status: 'Backlog',
+      },
+      {
+        id: 'c13', name: 'Localized Outbound Drafter', teamId: 'marketing',
+        problem: 'Outbound to restaurants by cuisine and region needs personalization — generic copy converts at half the rate of localized variants.',
+        approach: 'LLM generation conditioned on cuisine + region + recent ad spend; A/B framework and win-rate tracking baked into the workflow.',
+        roi: 'medium', effort: 'Weeks', status: 'Shipped',
+      },
+      {
+        id: 'c14', name: 'Onboarding Co-Pilot', teamId: 'product',
+        problem: 'New restaurants spend hours configuring menu, hours, ordering rules. Drop-off in the first 48 hours is the biggest activation risk.',
+        approach: 'Agent with tool use pulls menu from the restaurant\'s existing site, drafts the configuration, and walks the owner through approval.',
+        roi: 'high', effort: 'Months', status: 'Backlog',
+      },
+      {
+        id: 'c15', name: 'Spend-Forecast Drafter', teamId: 'finance',
+        problem: 'Monthly spend forecasts are assembled by hand from Notion budgets, vendor invoices, and team headcount plans.',
+        approach: 'LLM extraction over invoices + headcount sheet; reconciles against the prior month and drafts a variance commentary for finance review.',
+        roi: 'medium', effort: 'Weeks', status: 'Backlog',
+      },
+      {
+        id: 'c16', name: 'Sourcing Outreach Personalizer', teamId: 'recruiting',
+        problem: 'Sourcing emails to senior candidates feel generic. Personalization at scale is the difference between 5% and 25% reply rates.',
+        approach: 'LLM drafts a 2-paragraph personalized note from the candidate\'s public work + the role JD, surfaced as a Gmail-side draft for review.',
+        roi: 'medium', effort: 'Days', status: 'Backlog',
+      },
+      {
+        id: 'c17', name: 'Activation Funnel Diagnoser', teamId: 'growth',
+        problem: 'When activation drops we know it dropped — we don\'t know which sub-step or cohort drove it without a data analyst dive.',
+        approach: 'Agent over the warehouse: queries funnel by cohort, surfaces the largest contributing delta with chart + plain-language summary.',
+        roi: 'high', effort: 'Months', status: 'Backlog',
+      },
+      {
+        id: 'c18', name: 'Prompt Registry & Diff Tool', teamId: 'applied-ai',
+        problem: 'Prompts live in code, in YAML files, in a few PR descriptions. No single place shows what\'s in production or how it changed.',
+        approach: 'Lightweight registry with versioned prompts, side-by-side diff, eval results per version, and a one-click rollback.',
+        roi: 'medium', effort: 'Weeks', status: 'Backlog',
+      },
+    ];
+
+    // -------------------------------------------------------------------
+    // Persistence — safe shim that falls back to in-memory.
+    // -------------------------------------------------------------------
+    const LS_CARDS = 'owner-ai-board:cards:v2';
+    const LS_KEY   = 'owner-ai-board:apiKey';
+    const LS_MODEL = 'owner-ai-board:model';
+
+    const store = (() => {
+      const mem = {};
+      let usable = false;
+      try {
+        const t = '__owner_test__';
+        window.localStorage.setItem(t, '1');
+        window.localStorage.removeItem(t);
+        usable = true;
+      } catch { usable = false; }
+      return {
+        get(k)  { try { return usable ? window.localStorage.getItem(k) : (k in mem ? mem[k] : null); } catch { return k in mem ? mem[k] : null; } },
+        set(k,v){ try { if (usable) window.localStorage.setItem(k, v); else mem[k] = v; } catch { mem[k] = v; } },
+        del(k)  { try { if (usable) window.localStorage.removeItem(k); else delete mem[k]; } catch { delete mem[k]; } },
+        usable,
+      };
+    })();
+
+    function loadCards() {
+      try {
+        const raw = store.get(LS_CARDS);
+        if (!raw) return SEED;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || parsed.length === 0) return SEED;
+        return parsed;
+      } catch { return SEED; }
+    }
+
+    // -------------------------------------------------------------------
+    // Claude API
+    // -------------------------------------------------------------------
+    async function callClaude(prompt) {
+      if (typeof window !== 'undefined' && window.claude && typeof window.claude.complete === 'function') {
+        return await window.claude.complete(prompt);
+      }
+      const apiKey = store.get(LS_KEY);
+      const model  = store.get(LS_MODEL) || 'claude-sonnet-4-5';
+      if (!apiKey) throw new Error('NO_API_KEY');
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`API ${res.status}: ${txt.slice(0, 200)}`);
+      }
+      const data = await res.json();
+      return data.content?.[0]?.text || '';
+    }
+
+    function buildPrompt(team, problem) {
+      return [
+        'You are helping populate an internal AI opportunity board for Owner.com — a SaaS that helps independent restaurants run their websites, online ordering, marketing, and operations.',
+        '',
+        `Generate ONE realistic, scoped AI opportunity card for the "${team.name}" team.`,
+        '',
+        problem ? `Problem hint from the user: "${problem}"` : 'No problem hint provided — invent one that is plausible and specific to Owner.com.',
+        '',
+        'Return ONLY a single JSON object — no prose, no markdown fences. Use exactly this shape:',
+        '{',
+        '  "name": "5-word max project name",',
+        '  "problem": "1-2 sentences. Concrete pain. Reference Owner or restaurant operators.",',
+        '  "approach": "1 sentence. Specific AI technique (e.g. structured output, RAG with citations, agent with tool use, fine-tuned classifier, embedding clustering).",',
+        '  "roi": "high" | "medium" | "exploratory",',
+        '  "effort": "Days" | "Weeks" | "Months"',
+        '}',
+      ].join('\n');
+    }
+
+    function parseCardJson(text) {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('No JSON object in response');
+      const obj = JSON.parse(match[0]);
+      const required = ['name', 'problem', 'approach', 'roi', 'effort'];
+      for (const k of required) if (!obj[k]) throw new Error(`Missing field: ${k}`);
+      if (!ROI[obj.roi]) obj.roi = 'medium';
+      if (!EFFORT[obj.effort]) obj.effort = 'Weeks';
+      return obj;
+    }
+
+    // -------------------------------------------------------------------
+    // Icons
+    // -------------------------------------------------------------------
+    const Icon = {
+      Sparkle: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>,
+      Settings:(p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      Info:    (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>,
+      Close:   (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>,
+      Slides:  (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+      Board:   (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/></svg>,
+      Map:     (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6v15l6-3 6 3 6-3V3l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>,
+      Reset:   (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>,
+    };
+
+    // -------------------------------------------------------------------
+    // Header
+    // -------------------------------------------------------------------
+    function Header({ view, setView, onShowWhy, onShowSettings, onGenerate }) {
+      const Tab = ({ id, label, icon: I }) => (
+        <button
+          onClick={() => setView(id)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition ${view === id ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-500 hover:text-ink-800'}`}
+        >
+          <I className="w-3.5 h-3.5" /> {label}
+        </button>
+      );
+      return (
+        <header className="border-b border-ink-200 bg-white sticky top-0 z-30">
+          <div className="px-7 py-3.5 flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-md bg-owner-600 flex items-center justify-center">
+                <span className="text-white font-extrabold text-[15px] tracking-tight">O</span>
+              </div>
+              <div className="leading-tight">
+                <div className="font-semibold tracking-tight text-ink-900 flex items-center gap-2">
+                  <span>Owner</span>
+                  <span className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold">Internal</span>
+                </div>
+                <div className="text-[11px] text-ink-500">applied-ai · opportunity board</div>
+              </div>
+            </div>
+
+            <div className="h-8 w-px bg-ink-200" />
+
+            <div className="flex-1 min-w-0">
+              <h1 className="text-ink-900 font-semibold text-[15px] tracking-tight serif">Applied AI Opportunity Board</h1>
+              <p className="text-ink-500 text-[12px]">An exploration · Omar Abbasi · for the conversation with YG Hong</p>
+            </div>
+
+            <button
+              onClick={onShowWhy}
+              className="text-ink-600 hover:text-ink-900 text-[13px] flex items-center gap-1.5 px-2.5 py-1.5 rounded-md hover:bg-ink-100 transition"
+            >
+              <Icon.Info className="w-3.5 h-3.5" />
+              About
+            </button>
+
+            <button
+              onClick={onGenerate}
+              className="flex items-center gap-1.5 text-[13px] font-medium px-3.5 py-1.5 rounded-md bg-owner-600 text-white hover:bg-owner-700 transition shadow-sm"
+            >
+              <Icon.Sparkle className="w-3.5 h-3.5" />
+              Generate with Claude
+            </button>
+
+            <div className="flex items-center gap-1 p-1 bg-ink-100 rounded-lg">
+              <Tab id="board"    label="Board"    icon={Icon.Board} />
+              <Tab id="roadmap"  label="Roadmap"  icon={Icon.Map} />
+              <Tab id="snapshot" label="Snapshot" icon={Icon.Slides} />
+            </div>
+
+            <button
+              onClick={onShowSettings}
+              className="text-ink-500 hover:text-ink-900 p-1.5 rounded-md hover:bg-ink-100 transition"
+              title="Settings"
+            >
+              <Icon.Settings className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // Sidebar
+    // -------------------------------------------------------------------
+    function Sidebar({ activeTeam, setActiveTeam, cards }) {
+      const counts = useMemo(() => {
+        const byTeam = {};
+        for (const c of cards) byTeam[c.teamId] = (byTeam[c.teamId] || 0) + 1;
+        return byTeam;
+      }, [cards]);
+
+      const TeamBtn = ({ id, name, dot }) => {
+        const active = activeTeam === id;
+        const count = id === 'all' ? cards.length : (counts[id] || 0);
+        return (
+          <button
+            onClick={() => setActiveTeam(id)}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] mb-0.5 transition ${active ? 'bg-owner-50 text-owner-900 font-medium' : 'text-ink-600 hover:bg-ink-100 hover:text-ink-900'}`}
+          >
+            <span className="flex items-center gap-2.5 min-w-0">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: dot }} />
+              <span className="truncate">{name}</span>
+            </span>
+            <span className={`text-[11px] tabular-nums ${active ? 'text-owner-700' : 'text-ink-400'}`}>{count}</span>
+          </button>
+        );
+      };
+
+      return (
+        <aside className="w-60 shrink-0 border-r border-ink-200 bg-white flex flex-col">
+          <div className="px-5 pt-5 pb-2.5">
+            <div className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold">Teams</div>
+          </div>
+          <nav className="px-3 flex-1 overflow-y-auto pb-6">
+            <TeamBtn id="all" name="All Teams" dot="#A0A091" />
+            <div className="h-px bg-ink-200 my-2 mx-1" />
+            {TEAMS.map(t => <TeamBtn key={t.id} {...t} />)}
+          </nav>
+
+          <div className="px-5 py-4 border-t border-ink-200">
+            <div className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold mb-1.5">Note</div>
+            <p className="text-[12px] leading-relaxed text-ink-600">
+              The opportunities here are illustrative — a sketch of how this kind of map could read at Owner.
+            </p>
+          </div>
+        </aside>
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // Cards & Board
+    // -------------------------------------------------------------------
+    function Card({ card, isNew, compact }) {
+      const team = teamById(card.teamId);
+      const roi = ROI[card.roi];
+      const effort = EFFORT[card.effort];
+      return (
+        <div className={`group relative bg-white border border-ink-200 rounded-lg ${compact ? 'p-3' : 'p-4'} ring-card hover:border-ink-300 transition ${isNew ? 'fade-in ring-2 ring-owner-300' : ''}`}>
+          {isNew && (
+            <span className="absolute -top-2 -right-2 text-[9px] uppercase tracking-widest font-bold bg-owner-600 text-white px-1.5 py-0.5 rounded">new</span>
+          )}
+          <h3 className={`font-semibold text-ink-900 leading-tight tracking-tight mb-2 ${compact ? 'text-[13px]' : 'text-[14px]'}`}>{card.name}</h3>
+          <div className="flex items-center gap-1.5 mb-2.5">
+            <span className="inline-flex items-center gap-1.5 text-[10.5px] px-1.5 py-0.5 rounded border border-ink-200 bg-ink-50 text-ink-700">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: team.dot }} />
+              {team.name}
+            </span>
+          </div>
+          {!compact && (
+            <p className="text-[12.5px] leading-relaxed text-ink-700 mb-2.5">{card.problem}</p>
+          )}
+          {!compact && (
+            <div className="text-[11.5px] leading-relaxed text-ink-500 italic mb-3 border-l-2 border-ink-200 pl-2.5">
+              {card.approach}
+            </div>
+          )}
+          <div className="flex items-center justify-between gap-1.5 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <span className={`inline-flex items-center gap-1 text-[10.5px] px-1.5 py-0.5 rounded border ${roi.tone}`}>
+                <span>{roi.emoji}</span><span>{roi.label}</span>
+              </span>
+              <span className={`text-[10.5px] px-1.5 py-0.5 rounded border ${effort.tone}`}>
+                {card.effort}
+              </span>
+            </div>
+            <span className={`text-[10.5px] px-1.5 py-0.5 rounded border ${STATUS_TONE[card.status]}`}>
+              {card.status}
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    function Board({ cards, newCardId }) {
+      const grouped = useMemo(() => {
+        const g = { 'Backlog': [], 'In Progress': [], 'Shipped': [] };
+        for (const c of cards) (g[c.status] || g['Backlog']).push(c);
+        return g;
+      }, [cards]);
+
+      if (cards.length === 0) {
+        return (
+          <div className="flex-1 flex items-center justify-center text-ink-500 text-sm">
+            No opportunities for this team yet — try generating one.
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex-1 overflow-auto">
+          <div className="p-7 grid grid-cols-1 md:grid-cols-3 gap-5 min-h-full">
+            {STATUSES.map(status => (
+              <div key={status} className="flex flex-col min-w-0">
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[11px] uppercase tracking-widest font-semibold text-ink-700">{status}</h2>
+                    <span className="text-[10.5px] tabular-nums text-ink-500 bg-white border border-ink-200 rounded px-1.5 py-0.5">
+                      {grouped[status].length}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  {grouped[status].length === 0 ? (
+                    <div className="text-[11.5px] text-ink-400 border border-dashed border-ink-200 rounded-lg px-3 py-6 text-center bg-white/50">
+                      Empty
+                    </div>
+                  ) : grouped[status].map(c => (
+                    <Card key={c.id} card={c} isNew={c.id === newCardId} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // Roadmap — per-team hypothetical sequencing
+    // -------------------------------------------------------------------
+    const PHASES = [
+      { id: 'Now',   label: 'Now',           sub: 'next 30 days',  effort: 'Days'   },
+      { id: 'Next',  label: 'Next quarter',  sub: '60–90 days',    effort: 'Weeks'  },
+      { id: 'Later', label: 'Later',         sub: 'one quarter +', effort: 'Months' },
+    ];
+
+    function TeamRoadmapRow({ team, cards, expanded }) {
+      const byPhase = { Now: [], Next: [], Later: [] };
+      for (const c of cards) {
+        const ph = EFFORT[c.effort]?.phase || 'Next';
+        byPhase[ph].push(c);
+      }
+      // Within phase, rank high-ROI first
+      for (const k of Object.keys(byPhase)) {
+        byPhase[k].sort((a, b) => ROI[b.roi].score - ROI[a.roi].score);
+      }
+
+      return (
+        <div className="bg-white border border-ink-200 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-ink-200 flex items-center justify-between bg-ink-50/60">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full" style={{ background: team.dot }} />
+              <h3 className="font-semibold text-ink-900 text-[14px] tracking-tight">{team.name}</h3>
+              <span className="text-[11px] text-ink-500">· {cards.length} opportunit{cards.length === 1 ? 'y' : 'ies'}</span>
+            </div>
+            <div className="text-[11px] text-ink-400">hypothetical sequencing</div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-ink-200">
+            {PHASES.map(ph => (
+              <div key={ph.id} className="p-4 min-h-[100px]">
+                <div className="flex items-baseline justify-between mb-2.5">
+                  <div className="text-[11px] uppercase tracking-widest font-semibold text-ink-700">{ph.label}</div>
+                  <div className="text-[10px] text-ink-400">{ph.sub}</div>
+                </div>
+                {byPhase[ph.id].length === 0 ? (
+                  <div className="text-[11px] text-ink-400 italic">—</div>
+                ) : (
+                  <div className="space-y-2.5">
+                    {byPhase[ph.id].map(c => <Card key={c.id} card={c} compact={!expanded} />)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function Roadmap({ cards, activeTeam }) {
+      const teams = activeTeam === 'all' ? TEAMS : TEAMS.filter(t => t.id === activeTeam);
+      const focused = activeTeam !== 'all';
+
+      return (
+        <div className="flex-1 overflow-auto">
+          <div className="px-7 py-6 max-w-7xl">
+            <div className="mb-6">
+              <div className="text-[11px] uppercase tracking-widest font-semibold text-ink-400 mb-1">Roadmap view</div>
+              <h2 className="text-2xl font-semibold tracking-tight text-ink-900 serif">
+                {focused ? `${teams[0]?.name} · hypothetical sequencing` : 'A hypothetical sequencing across teams'}
+              </h2>
+              <p className="text-[13px] text-ink-600 mt-2 max-w-2xl">
+                Cards are placed by effort tier — <span className="text-ink-800 font-medium">Days → Now</span>, <span className="text-ink-800 font-medium">Weeks → Next</span>, <span className="text-ink-800 font-medium">Months → Later</span>.
+                Within each phase, higher-ROI items lead. The actual sequencing would come out of conversations with each team and the data we'd see in week one.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {teams.map(t => {
+                const teamCards = cards.filter(c => c.teamId === t.id);
+                if (teamCards.length === 0 && focused) return null;
+                if (teamCards.length === 0) {
+                  return (
+                    <div key={t.id} className="bg-white border border-ink-200 border-dashed rounded-xl px-5 py-4 flex items-center gap-2.5 text-ink-500">
+                      <span className="w-2 h-2 rounded-full" style={{ background: t.dot }} />
+                      <span className="font-medium text-ink-700 text-[13px]">{t.name}</span>
+                      <span className="text-[12px]">— no opportunities yet</span>
+                    </div>
+                  );
+                }
+                return <TeamRoadmapRow key={t.id} team={t} cards={teamCards} expanded={focused} />;
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // Snapshot — light exec one-pager
+    // -------------------------------------------------------------------
+    function Snapshot({ cards }) {
+      const ranked = useMemo(() => {
+        return [...cards].sort((a, b) => {
+          const sa = ROI[a.roi].score * 10 - EFFORT[a.effort].score;
+          const sb = ROI[b.roi].score * 10 - EFFORT[b.effort].score;
+          return sb - sa;
+        });
+      }, [cards]);
+
+      const top3 = ranked.slice(0, 3);
+
+      const byTeam = useMemo(() => {
+        const m = {};
+        for (const c of cards) {
+          if (!m[c.teamId]) m[c.teamId] = [];
+          m[c.teamId].push(c);
+        }
+        return m;
+      }, [cards]);
+
+      const teamCount = Object.keys(byTeam).length;
+
+      return (
+        <div className="flex-1 overflow-auto">
+          <div className="max-w-5xl mx-auto px-10 py-12">
+            <div className="text-[10px] mono uppercase tracking-widest text-ink-400 mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-owner-500" />
+              Snapshot · illustrative only
+            </div>
+            <h1 className="text-3xl font-semibold tracking-tight text-ink-900 mb-2 serif">A possible shape</h1>
+            <p className="text-ink-500 text-[13px] max-w-2xl mb-1">Omar Abbasi · for the conversation with YG Hong · Owner.com</p>
+            <p className="text-ink-700 text-[14px] max-w-2xl leading-relaxed mt-4">
+              Eighteen illustrative opportunities across {teamCount} teams. Most are weeks of work — a few are
+              days, a few are months. Below are the three that would <em className="serif text-owner-700 not-italic font-medium">probably</em>
+              {' '}rise to the top of an ROI-versus-effort ranking, plus how they fit together.
+              These are sketches, not decisions.
+            </p>
+
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-3">
+              {top3.map((c, i) => {
+                const team = teamById(c.teamId);
+                return (
+                  <div key={c.id} className="relative bg-white border border-ink-200 rounded-xl p-5 ring-card">
+                    <div className="text-[10px] uppercase tracking-widest text-owner-700 font-semibold mb-2">High signal · {i + 1}</div>
+                    <div className="font-semibold text-ink-900 tracking-tight mb-1.5 text-[15px]">{c.name}</div>
+                    <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+                      <span className="inline-flex items-center gap-1.5 text-[10.5px] px-1.5 py-0.5 rounded border border-ink-200 bg-ink-50 text-ink-700">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: team.dot }} />
+                        {team.name}
+                      </span>
+                      <span className={`text-[10.5px] px-1.5 py-0.5 rounded border ${ROI[c.roi].tone}`}>
+                        {ROI[c.roi].emoji} {ROI[c.roi].label}
+                      </span>
+                      <span className={`text-[10.5px] px-1.5 py-0.5 rounded border ${EFFORT[c.effort].tone}`}>
+                        {c.effort}
+                      </span>
+                    </div>
+                    <p className="text-[12.5px] text-ink-700 leading-relaxed">{c.problem}</p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-12">
+              <h2 className="text-[11px] uppercase tracking-widest font-semibold text-ink-700 mb-1">Why this shape</h2>
+              <p className="text-[13px] text-ink-700 leading-relaxed max-w-3xl">
+                The pattern that keeps showing up: each function has a few problems where the
+                bottleneck is <em className="serif not-italic font-medium">reading and routing unstructured signal</em> —
+                support calls, reviews, payouts, resumes, meetings, competitor pages. Those are
+                consistently the highest-leverage starting points because the model does the part
+                humans are already doing badly, and the workflow around it (Salesforce, Linear,
+                Slack) already exists.
+              </p>
+            </div>
+
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="bg-white border border-ink-200 rounded-xl p-5">
+                <div className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold mb-1.5">Teams covered</div>
+                <div className="text-3xl font-semibold text-ink-900 tracking-tight serif">{teamCount}</div>
+                <div className="text-[12px] text-ink-500 mt-1">cross-functional surface area</div>
+              </div>
+              <div className="bg-white border border-ink-200 rounded-xl p-5">
+                <div className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold mb-1.5">Opportunities mapped</div>
+                <div className="text-3xl font-semibold text-ink-900 tracking-tight serif">{cards.length}</div>
+                <div className="text-[12px] text-ink-500 mt-1">illustrative · expanding via Generate</div>
+              </div>
+              <div className="bg-white border border-ink-200 rounded-xl p-5">
+                <div className="text-[10px] uppercase tracking-widest text-ink-400 font-semibold mb-1.5">Effort blend</div>
+                <div className="text-3xl font-semibold text-ink-900 tracking-tight serif">
+                  {cards.filter(c => c.effort === 'Days').length} · {cards.filter(c => c.effort === 'Weeks').length} · {cards.filter(c => c.effort === 'Months').length}
+                </div>
+                <div className="text-[12px] text-ink-500 mt-1">Days · Weeks · Months</div>
+              </div>
+            </div>
+
+            <div className="mt-12 border-t border-ink-200 pt-6 flex items-center justify-between">
+              <div className="text-[12px] text-ink-500 max-w-xl">
+                Numbers and sequencing here are illustrative. Real prioritization needs the data and the team —
+                this is meant to show how I think about mapping the surface, not a plan I'm proposing on day one.
+              </div>
+              <div className="text-[11px] text-ink-400">omar abbasi · 2026</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // Modals
+    // -------------------------------------------------------------------
+    function ModalShell({ children, onClose, width = 'max-w-lg' }) {
+      useEffect(() => {
+        const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, [onClose]);
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink-900/30 backdrop-blur-sm" onClick={onClose}>
+          <div
+            className={`w-full ${width} bg-white border border-ink-200 rounded-xl shadow-xl fade-in`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {children}
+          </div>
+        </div>
+      );
+    }
+
+    function WhyModal({ onClose }) {
+      return (
+        <ModalShell onClose={onClose} width="max-w-xl">
+          <div className="p-7">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="text-[10px] uppercase tracking-widest text-owner-700 font-semibold mb-1">About</div>
+                <h2 className="text-xl font-semibold text-ink-900 tracking-tight serif">A sketch, not a plan</h2>
+              </div>
+              <button onClick={onClose} className="text-ink-400 hover:text-ink-700 p-1 -m-1">
+                <Icon.Close className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-3.5 text-[13.5px] leading-relaxed text-ink-700">
+              <p>
+                The hardest part of an applied AI team isn't the modeling — it's choosing and sequencing the
+                right problems. This is one shape that exercise could take at Owner.
+              </p>
+              <p>
+                I built it because I think better with artifacts than with bullet points. Every team here has 5–10
+                AI-solvable problems sitting on the floor; without a single map, you tend to ship the loudest
+                request rather than the highest-leverage one. The board makes that map visible.
+              </p>
+              <p>
+                The opportunities are illustrative — informed guesses about what a restaurant-tech SaaS like Owner
+                might be wrestling with. Real prioritization would come out of conversations with each team and the
+                data we'd see together.
+              </p>
+              <p className="text-ink-600">
+                The Generate-with-Claude button is a small tell: even the tools we use to think about AI work should
+                themselves be AI-native. Try it — pick a team, give it a one-line problem, watch a card render in
+                the same shape as the others.
+              </p>
+            </div>
+            <button onClick={onClose} className="mt-5 w-full bg-ink-900 text-white font-medium text-[13px] py-2.5 rounded-md hover:bg-ink-800 transition">
+              Close
+            </button>
+          </div>
+        </ModalShell>
+      );
+    }
+
+    function SettingsModal({ onClose, onReset }) {
+      const [apiKey, setApiKey] = useState(store.get(LS_KEY) || '');
+      const [model, setModel] = useState(store.get(LS_MODEL) || 'claude-sonnet-4-5');
+      const [saved, setSaved] = useState(false);
+      const inArtifact = typeof window !== 'undefined' && window.claude && typeof window.claude.complete === 'function';
+
+      const save = () => {
+        if (apiKey) store.set(LS_KEY, apiKey); else store.del(LS_KEY);
+        store.set(LS_MODEL, model);
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1500);
+      };
+
+      return (
+        <ModalShell onClose={onClose} width="max-w-md">
+          <div className="p-7">
+            <div className="flex items-start justify-between mb-5">
+              <h2 className="text-xl font-semibold text-ink-900 tracking-tight serif">Settings</h2>
+              <button onClick={onClose} className="text-ink-400 hover:text-ink-700 p-1 -m-1">
+                <Icon.Close className="w-4 h-4" />
+              </button>
+            </div>
+
+            {inArtifact ? (
+              <div className="text-[12.5px] bg-owner-50 border border-owner-200 text-owner-800 rounded-md px-3 py-2.5 mb-4">
+                Running inside the Claude artifact environment — Generate works without an API key.
+              </div>
+            ) : (
+              <div className="text-[12.5px] bg-ink-50 border border-ink-200 text-ink-700 rounded-md px-3 py-2.5 mb-4">
+                Standalone mode — paste your Anthropic API key to enable Generate. Stored only in this browser.
+                {!store.usable && (
+                  <span className="block mt-1 text-ink-500 italic">(Storage is unavailable in this preview, so the key won't persist across reloads.)</span>
+                )}
+              </div>
+            )}
+
+            <label className="block text-[11px] uppercase tracking-widest font-semibold text-ink-500 mb-1.5">Anthropic API Key</label>
+            <input
+              type="password"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              placeholder="sk-ant-..."
+              className="w-full bg-white border border-ink-200 focus:border-owner-500 focus:ring-1 focus:ring-owner-200 rounded-md px-3 py-2 text-[13px] outline-none transition placeholder:text-ink-400"
+            />
+
+            <label className="block text-[11px] uppercase tracking-widest font-semibold text-ink-500 mb-1.5 mt-4">Model</label>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="w-full bg-white border border-ink-200 focus:border-owner-500 rounded-md px-3 py-2 text-[13px] outline-none transition"
+            >
+              <option value="claude-sonnet-4-5">claude-sonnet-4-5</option>
+              <option value="claude-sonnet-4-6">claude-sonnet-4-6</option>
+              <option value="claude-opus-4-7">claude-opus-4-7</option>
+              <option value="claude-haiku-4-5-20251001">claude-haiku-4-5</option>
+              <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet</option>
+            </select>
+
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={save}
+                className="flex-1 bg-owner-600 text-white font-medium text-[13px] py-2 rounded-md hover:bg-owner-700 transition"
+              >
+                {saved ? 'Saved ✓' : 'Save'}
+              </button>
+              <button
+                onClick={() => {
+                  if (confirm('Reset board to seed data? This will discard generated cards.')) {
+                    onReset();
+                    onClose();
+                  }
+                }}
+                className="flex items-center gap-1.5 bg-white hover:bg-ink-50 border border-ink-200 text-ink-700 text-[13px] px-3 py-2 rounded-md transition"
+              >
+                <Icon.Reset className="w-3.5 h-3.5" />
+                Reset
+              </button>
+            </div>
+          </div>
+        </ModalShell>
+      );
+    }
+
+    function GenerateModal({ onClose, onCreate }) {
+      const [teamId, setTeamId] = useState('sales');
+      const [problem, setProblem] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState(null);
+      const [preview, setPreview] = useState(null);
+      const inputRef = useRef(null);
+
+      useEffect(() => { inputRef.current?.focus(); }, []);
+
+      const generate = async () => {
+        setError(null);
+        setPreview(null);
+        setLoading(true);
+        try {
+          const team = teamById(teamId);
+          const text = await callClaude(buildPrompt(team, problem));
+          const obj = parseCardJson(text);
+          setPreview({
+            id: 'gen-' + Date.now(),
+            name: obj.name,
+            teamId,
+            problem: obj.problem,
+            approach: obj.approach,
+            roi: obj.roi,
+            effort: obj.effort,
+            status: 'Backlog',
+          });
+        } catch (e) {
+          if (e.message === 'NO_API_KEY') {
+            setError('No Anthropic API key set — open Settings (gear icon) to add one.');
+          } else {
+            setError(e.message || String(e));
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      const accept = () => {
+        if (preview) onCreate(preview);
+      };
+
+      return (
+        <ModalShell onClose={onClose} width="max-w-xl">
+          <div className="p-7">
+            <div className="flex items-start justify-between mb-5">
+              <div>
+                <div className="text-[10px] uppercase tracking-widest text-owner-700 font-semibold mb-1">Live · Claude API</div>
+                <h2 className="text-xl font-semibold text-ink-900 tracking-tight serif">Generate Opportunity</h2>
+                <p className="text-[12.5px] text-ink-500 mt-1">Pick a team and describe a problem. Claude drafts the card.</p>
+              </div>
+              <button onClick={onClose} className="text-ink-400 hover:text-ink-700 p-1 -m-1">
+                <Icon.Close className="w-4 h-4" />
+              </button>
+            </div>
+
+            <label className="block text-[11px] uppercase tracking-widest font-semibold text-ink-500 mb-1.5">Team</label>
+            <select
+              value={teamId}
+              onChange={(e) => setTeamId(e.target.value)}
+              disabled={loading}
+              className="w-full bg-white border border-ink-200 focus:border-owner-500 rounded-md px-3 py-2 text-[13px] outline-none transition disabled:opacity-50"
+            >
+              {TEAMS.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+
+            <label className="block text-[11px] uppercase tracking-widest font-semibold text-ink-500 mb-1.5 mt-4">Problem (one line)</label>
+            <textarea
+              ref={inputRef}
+              value={problem}
+              onChange={(e) => setProblem(e.target.value)}
+              disabled={loading}
+              rows={2}
+              placeholder="e.g. AEs spend too long manually researching restaurants before discovery calls"
+              className="w-full bg-white border border-ink-200 focus:border-owner-500 focus:ring-1 focus:ring-owner-200 rounded-md px-3 py-2 text-[13px] outline-none transition resize-none placeholder:text-ink-400 disabled:opacity-50"
+            />
+
+            {error && (
+              <div className="mt-4 text-[12.5px] bg-rose-50 border border-rose-200 text-rose-800 rounded-md px-3 py-2.5">
+                {error}
+              </div>
+            )}
+
+            {loading && (
+              <div className="mt-4 space-y-2">
+                <div className="shimmer h-4 rounded w-2/3" />
+                <div className="shimmer h-3 rounded w-full" />
+                <div className="shimmer h-3 rounded w-5/6" />
+                <div className="text-[11px] text-ink-500 mt-2">Calling Claude…</div>
+              </div>
+            )}
+
+            {preview && !loading && (
+              <div className="mt-4">
+                <div className="text-[10px] uppercase tracking-widest text-owner-700 font-semibold mb-2">Draft</div>
+                <Card card={preview} isNew />
+              </div>
+            )}
+
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={generate}
+                disabled={loading}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-owner-600 text-white font-medium text-[13px] py-2.5 rounded-md hover:bg-owner-700 transition disabled:opacity-50"
+              >
+                <Icon.Sparkle className="w-4 h-4" />
+                {preview ? 'Regenerate' : 'Generate'}
+              </button>
+              {preview && (
+                <button
+                  onClick={accept}
+                  className="bg-ink-900 text-white font-medium text-[13px] px-4 py-2.5 rounded-md hover:bg-ink-800 transition"
+                >
+                  Add to board
+                </button>
+              )}
+            </div>
+          </div>
+        </ModalShell>
+      );
+    }
+
+    // -------------------------------------------------------------------
+    // App
+    // -------------------------------------------------------------------
+    function App() {
+      const [cards, setCards] = useState(loadCards);
+      const [activeTeam, setActiveTeam] = useState('all');
+      const [view, setView] = useState('board');  // 'board' | 'roadmap' | 'snapshot'
+      const [showGenerate, setShowGenerate] = useState(false);
+      const [showWhy, setShowWhy] = useState(false);
+      const [showSettings, setShowSettings] = useState(false);
+      const [newCardId, setNewCardId] = useState(null);
+
+      useEffect(() => {
+        store.set(LS_CARDS, JSON.stringify(cards));
+      }, [cards]);
+
+      useEffect(() => {
+        if (!store.get('owner-ai-board:visited')) {
+          setShowWhy(true);
+          store.set('owner-ai-board:visited', '1');
+        }
+      }, []);
+
+      const filtered = useMemo(() => {
+        if (activeTeam === 'all') return cards;
+        return cards.filter(c => c.teamId === activeTeam);
+      }, [cards, activeTeam]);
+
+      const handleCreate = (card) => {
+        setCards(c => [card, ...c]);
+        setNewCardId(card.id);
+        setActiveTeam(card.teamId);
+        setShowGenerate(false);
+        setTimeout(() => setNewCardId(null), 4000);
+      };
+
+      const handleReset = () => {
+        store.del(LS_CARDS);
+        setCards(SEED);
+        setActiveTeam('all');
+      };
+
+      return (
+        <div className="h-screen flex flex-col bg-ink-50">
+          <Header
+            view={view}
+            setView={setView}
+            onShowWhy={() => setShowWhy(true)}
+            onShowSettings={() => setShowSettings(true)}
+            onGenerate={() => setShowGenerate(true)}
+          />
+          <div className="flex-1 flex overflow-hidden">
+            {view !== 'snapshot' && (
+              <Sidebar activeTeam={activeTeam} setActiveTeam={setActiveTeam} cards={cards} />
+            )}
+            {view === 'board'    && <Board cards={filtered} newCardId={newCardId} />}
+            {view === 'roadmap'  && <Roadmap cards={cards} activeTeam={activeTeam} />}
+            {view === 'snapshot' && <Snapshot cards={cards} />}
+          </div>
+          {showGenerate && (
+            <GenerateModal
+              onClose={() => setShowGenerate(false)}
+              onCreate={handleCreate}
+            />
+          )}
+          {showWhy && <WhyModal onClose={() => setShowWhy(false)} />}
+          {showSettings && (
+            <SettingsModal
+              onClose={() => setShowSettings(false)}
+              onReset={handleReset}
+            />
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
