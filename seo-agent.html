@@ -1153,13 +1153,45 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     iterCountEl.textContent = prevIter;
   }
 
-  // ---------- Agent runner ----------
-  // Rate-limit awareness: estimate next iteration's input tokens from the
-  // previous call (usage.input_tokens or rate-limit headers). If it would
-  // exceed 25K (with 30K/min limit), cooldown 60s before continuing.
-  const ITER_TOKEN_THRESHOLD = 25000;
-  const ITER_COOLDOWN_SECONDS = 60;
+  // ---------- Rate-limit budget tracker ----------
+  // The 30K input-tokens/min limit is cumulative across a rolling 60s window,
+  // not per-call. We track every call's input_tokens + start timestamp and
+  // wait until enough tokens fall out of the window before each new call.
+  const RATE_LIMIT_BUDGET   = 30000;
+  const RATE_LIMIT_WINDOW_MS = 60000;
+  const RATE_LIMIT_SAFETY   = 2000;     // headroom buffer (target ≤28K used)
+  const NEXT_CALL_GROWTH    = 1500;     // assume next call adds ≥1.5K vs prev
+  const recentCalls = [];               // [{ timestamp, inputTokens }]
 
+  function pruneRecentCalls() {
+    const cutoff = Date.now() - RATE_LIMIT_WINDOW_MS;
+    while (recentCalls.length && recentCalls[0].timestamp < cutoff) recentCalls.shift();
+  }
+  function tokensInWindow() {
+    pruneRecentCalls();
+    return recentCalls.reduce((s, c) => s + c.inputTokens, 0);
+  }
+  function waitMsForCapacity(estimatedNext, headerRemaining) {
+    pruneRecentCalls();
+    const used = tokensInWindow();
+    const headroom = RATE_LIMIT_BUDGET - RATE_LIMIT_SAFETY - used;
+    const headerHeadroom = (typeof headerRemaining === 'number')
+      ? headerRemaining - RATE_LIMIT_SAFETY
+      : Infinity;
+    if (estimatedNext <= headroom && estimatedNext <= headerHeadroom) return 0;
+    if (recentCalls.length === 0) return 0;
+    // Peel oldest entries off until enough room would be freed.
+    let needToFree = estimatedNext - Math.min(headroom, headerHeadroom);
+    let waitUntil = Date.now();
+    for (const call of recentCalls) {
+      waitUntil = call.timestamp + RATE_LIMIT_WINDOW_MS;
+      needToFree -= call.inputTokens;
+      if (needToFree <= 0) break;
+    }
+    return Math.max(0, waitUntil - Date.now() + 1000); // +1s buffer
+  }
+
+  // ---------- Agent runner ----------
   async function runAgent({ apiKey, url, hooks = {} }) {
     const messages = [{ role: 'user', content: `Analyze ${url}. Produce a full SEO gap report.` }];
     let iterations = 0;
@@ -1175,24 +1207,22 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
       iterations++;
       hooks.onIter?.(iterations);
 
-      // Pre-iteration cooldown: estimate from previous call's input_tokens or
-      // remaining rate-limit window. If next iteration would exceed 25K, pause.
-      if (iterations > 1) {
-        const lastInput = lastUsage?.input_tokens ?? 0;
-        const remaining = lastRateLimits?.inputTokensRemaining;
-        const wouldExceed = lastInput >= ITER_TOKEN_THRESHOLD;
-        const headerSaysLow = (typeof remaining === 'number') && remaining < ITER_TOKEN_THRESHOLD;
-        if (wouldExceed || headerSaysLow) {
-          const reason = wouldExceed
-            ? `last iteration sent ${lastInput.toLocaleString()} input tokens (>25K threshold)`
-            : `${remaining.toLocaleString()} input tokens remaining in rate-limit window`;
-          await cooldown(ITER_COOLDOWN_SECONDS, reason);
-        }
+      // Rolling-window budget check: 30K/min is cumulative.
+      // Estimate next call from previous call's input_tokens + a small growth buffer.
+      const estimated = (lastUsage?.input_tokens ?? 5000) + NEXT_CALL_GROWTH;
+      const headerRemaining = lastRateLimits?.inputTokensRemaining;
+      const waitMs = waitMsForCapacity(estimated, headerRemaining);
+      if (waitMs > 0) {
+        const seconds = Math.ceil(waitMs / 1000);
+        const used = tokensInWindow();
+        const reason = `${used.toLocaleString()} tokens used in last 60s; need room for next call (~${estimated.toLocaleString()})`;
+        await cooldown(seconds, reason);
       }
 
       let currentTextItem = null;
       let assistantMsg;
       const apiMessages = buildPrunedMessages(messages, prunedFetchIds);
+      const callStart = Date.now();
       try {
         assistantMsg = await streamMessages({
           apiKey,
@@ -1236,6 +1266,21 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
           }
         });
       } catch (e) {
+        // Auto-recover from 429: cool down for 60s and retry the same iteration.
+        const is429 = /\b429\b|rate_limit_error|rate limit/i.test(e.message);
+        if (is429) {
+          addLogItem({
+            icon: '⚠️',
+            type: 'error',
+            text: `Rate limit hit — auto-cooldown 60s and retrying iteration ${iterations}.`
+          });
+          // Backdate the rolling window so the retry believes the window is empty.
+          recentCalls.length = 0;
+          await cooldown(60, `429 from API — clearing rolling window before retry`);
+          iterations--;          // re-attempt this iteration
+          hooks.onIter?.(iterations);
+          continue;
+        }
         addLogItem({ icon: '⚠️', type: 'error', text: `API error: ${e.message}` });
         throw e;
       }
@@ -1243,13 +1288,16 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
       lastUsage = assistantMsg.usage;
       lastRateLimits = assistantMsg.rateLimits;
       if (lastUsage && typeof lastUsage.input_tokens === 'number') {
+        recentCalls.push({ timestamp: callStart, inputTokens: lastUsage.input_tokens });
         const out = lastUsage.output_tokens ?? '?';
+        const windowUsed = tokensInWindow();
         addLogItem({
           icon: '📊',
           type: 'system',
           text: `usage · in=${lastUsage.input_tokens.toLocaleString()}  out=${out.toLocaleString?.() ?? out}` +
+                `  · window=${windowUsed.toLocaleString()}/${RATE_LIMIT_BUDGET.toLocaleString()}` +
                 (lastRateLimits?.inputTokensRemaining != null
-                  ? `  · remaining=${lastRateLimits.inputTokensRemaining.toLocaleString()}/${(lastRateLimits.inputTokensLimit ?? 0).toLocaleString()}`
+                  ? `  · header=${lastRateLimits.inputTokensRemaining.toLocaleString()}`
                   : '')
         });
       }
