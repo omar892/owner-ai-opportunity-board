@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Owner SEO Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Owner brand */
+    --owner-50:  #EFF7F2;
+    --owner-100: #DCEDE2;
+    --owner-200: #BADCC7;
+    --owner-300: #8FC3A6;
+    --owner-400: #5FA483;
+    --owner-500: #3D8862;
+    --owner-600: #2D8659;
+    --owner-700: #236B47;
+    --owner-800: #1D5639;
+    --owner-900: #16402B;
+    /* Ink (warm grays/cream) */
+    --ink-50:  #FAFAF7;
+    --ink-100: #F2F2EC;
+    --ink-200: #E6E6DD;
+    --ink-300: #D0D0C2;
+    --ink-400: #A0A091;
+    --ink-500: #6F6F62;
+    --ink-600: #4F4F46;
+    --ink-700: #363632;
+    --ink-800: #1F1F1C;
+    --ink-900: #0F0F0E;
+    /* Semantic */
+    --bg: var(--ink-50);
+    --surface: #FFFFFF;
+    --surface-soft: var(--ink-100);
+    --border: var(--ink-200);
+    --border-hi: var(--ink-300);
+    --text: var(--ink-900);
+    --text-dim: var(--ink-600);
+    --text-muted: var(--ink-500);
+    --text-faint: var(--ink-400);
+    --accent: var(--owner-600);
+    --accent-hover: var(--owner-700);
+    --accent-soft: var(--owner-50);
+    /* Status (Owner-tuned) */
+    --green: var(--owner-600);
+    --green-soft: var(--owner-50);
+    --yellow: #B7791F;
+    --yellow-soft: #FAF1DC;
+    --red: #B91C1C;
+    --red-soft: #FDECEC;
+    --blue: #1D4F91;
+    --blue-soft: #EAF2FB;
+    /* Type */
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: var(--sans); font-size: 14px; line-height: 1.55;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 2px; }
+  button { font-family: var(--sans); cursor: pointer; }
+  input, textarea { font-family: var(--sans); }
+  .serif { font-family: var(--serif); letter-spacing: -0.01em; font-feature-settings: 'ss01'; }
+
+  /* Top bar */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px; border-bottom: 1px solid var(--border);
+    background: rgba(250, 250, 247, 0.85); backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-logo {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: var(--owner-600); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px; letter-spacing: -0.02em;
+  }
+  .brand-text { display: flex; flex-direction: column; gap: 1px; line-height: 1.1; }
+  .brand-mark {
+    font-family: var(--serif); font-weight: 600; font-size: 15px; color: var(--ink-900);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .brand-mark .badge {
+    font-family: var(--sans); font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--ink-500); background: var(--ink-100); border: 1px solid var(--ink-200);
+    padding: 2px 6px; border-radius: 4px;
+  }
+  .brand-sub { color: var(--ink-500); font-size: 11.5px; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    background: var(--surface); color: var(--ink-800); border: 1px solid var(--border);
+    padding: 7px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
+    transition: all 0.15s ease;
+  }
+  .btn:hover { border-color: var(--border-hi); background: var(--ink-100); }
+  .btn-primary {
+    background: var(--owner-600); color: #fff; border-color: var(--owner-600); font-weight: 600;
+    box-shadow: 0 1px 0 rgba(22, 64, 43, 0.06);
+  }
+  .btn-primary:hover { background: var(--owner-700); border-color: var(--owner-700); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-ghost { background: transparent; }
+  .key-input {
+    background: var(--surface); border: 1px solid var(--border); color: var(--ink-800);
+    padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: var(--mono);
+    width: 220px; transition: border 0.15s;
+  }
+  .key-input:focus { outline: none; border-color: var(--owner-500); }
+
+  /* Input section */
+  .input-section {
+    max-width: 720px; margin: 80px auto 40px; padding: 0 24px; text-align: center;
+  }
+  .h1 {
+    font-family: var(--serif); font-size: 36px; font-weight: 600; letter-spacing: -0.02em;
+    margin: 0 0 14px; color: var(--ink-900); line-height: 1.15;
+  }
+  .h1 em { color: var(--owner-700); font-style: normal; }
+  .lede { color: var(--ink-600); font-size: 15px; margin: 0 0 32px; line-height: 1.6; }
+  .url-row { display: flex; gap: 8px; }
+  .url-input {
+    flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--ink-900);
+    padding: 12px 14px; font-size: 14px; border-radius: 8px; outline: none;
+    transition: border 0.15s ease, box-shadow 0.15s ease;
+    font-family: var(--mono);
+  }
+  .url-input::placeholder { color: var(--ink-400); }
+  .url-input:focus { border-color: var(--owner-500); box-shadow: 0 0 0 3px var(--owner-50); }
+  .run-btn { padding: 12px 22px; font-size: 14px; }
+  .input-hint { color: var(--ink-500); font-size: 12px; margin-top: 16px; text-align: left; }
+  .input-hint code {
+    color: var(--owner-700); background: var(--owner-50); padding: 2px 6px; border-radius: 4px;
+    font-family: var(--mono); font-size: 11px; border: 1px solid var(--owner-100);
+  }
+  .preset-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+  .preset {
+    background: var(--surface); border: 1px solid var(--border); color: var(--ink-600);
+    padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: var(--mono);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .preset:hover { color: var(--owner-700); border-color: var(--owner-300); background: var(--owner-50); }
+
+  /* Run section: two-panel layout */
+  .run-section {
+    display: grid; grid-template-columns: 40fr 60fr; gap: 0;
+    height: calc(100vh - 53px); border-top: 1px solid var(--border);
+  }
+  .panel { overflow-y: auto; padding: 22px; }
+  .panel.left {
+    border-right: 1px solid var(--border);
+    background: var(--ink-900);
+    color: var(--ink-200);
+  }
+  .panel.right { background: var(--bg); }
+  .panel-title {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--ink-500); margin: 0 0 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .panel.left .panel-title { color: var(--ink-300); }
+  .panel-title .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--owner-500);
+  }
+  .panel-title .dot.idle { background: var(--ink-500); }
+  .panel-title .dot.live { animation: pulse 1.5s ease-in-out infinite; box-shadow: 0 0 0 0 rgba(61, 136, 98, 0.6); }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(95, 164, 131, 0.55); }
+    70%  { box-shadow: 0 0 0 7px rgba(95, 164, 131, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(95, 164, 131, 0); }
+  }
+
+  /* Activity Log (terminal feed on dark ink-900) */
+  .log { font-family: var(--mono); font-size: 12px; }
+  .log-item {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 10px 4px; display: grid; grid-template-columns: 16px 64px 1fr; gap: 10px;
+    align-items: start; animation: fadein 0.3s ease;
+  }
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .log-item .icon { font-size: 12px; line-height: 1.4; }
+  .log-item .ts { color: var(--ink-500); font-size: 11px; }
+  .log-item .body {
+    color: var(--ink-200); white-space: pre-wrap; word-break: break-word; cursor: pointer;
+    line-height: 1.55;
+  }
+  .log-item.expanded .body { background: rgba(255,255,255,0.04); padding: 8px 10px; border-radius: 4px; }
+  .log-item .body.thinking { color: var(--ink-300); font-style: italic; }
+  .log-item .body.tool { color: var(--owner-300); }
+  .log-item .body.tool-arg { color: var(--ink-400); margin-top: 2px; font-size: 11px; }
+  .log-item .body.finding { color: var(--owner-200); }
+  .log-item .body.error { color: #FCA5A5; }
+  .log-item .body.complete { color: #FFFFFF; font-weight: 600; }
+  .log-item .body.system { color: var(--ink-400); }
+
+  /* Report */
+  .report-section { margin-bottom: 26px; }
+  .report-section h2 {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--ink-500); margin: 0 0 12px;
+  }
+  .empty-state {
+    color: var(--ink-400); font-size: 13px; padding: 14px 16px;
+    background: var(--surface); border: 1px dashed var(--border); border-radius: 8px;
+  }
+  .header-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 0 rgba(15, 15, 14, 0.02);
+  }
+  .header-card .name {
+    font-family: var(--serif); font-size: 24px; font-weight: 600; letter-spacing: -0.01em;
+    margin: 0 0 4px; color: var(--ink-900);
+  }
+  .header-card .meta { color: var(--ink-600); font-size: 13px; }
+  .header-card .meta span:not(:last-child)::after { content: " · "; color: var(--ink-400); }
+  .header-card .url {
+    color: var(--ink-500); font-family: var(--mono); font-size: 11px; margin-top: 10px;
+    padding-top: 10px; border-top: 1px solid var(--ink-100);
+  }
+
+  /* Gauge */
+  .gauge-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 22px; display: flex; align-items: center; gap: 24px;
+    box-shadow: 0 1px 0 rgba(15, 15, 14, 0.02);
+  }
+  .gauge-svg { flex-shrink: 0; }
+  .gauge-info .label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--ink-500); font-weight: 700;
+  }
+  .gauge-info .num {
+    font-family: var(--serif); font-size: 38px; font-weight: 600; line-height: 1;
+    margin: 6px 0 8px; letter-spacing: -0.02em;
+  }
+  .gauge-info .desc { color: var(--ink-600); font-size: 13px; max-width: 340px; line-height: 1.55; }
+
+  /* Dimension scorecard */
+  .dim-row {
+    display: grid; grid-template-columns: 1fr;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 8px;
+    box-shadow: 0 1px 0 rgba(15, 15, 14, 0.02);
+    transition: border-color 0.15s;
+  }
+  .dim-row:hover { border-color: var(--border-hi); }
+  .dim-row .dim-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+  .dim-row .dim-name { font-weight: 600; font-size: 13.5px; color: var(--ink-900); letter-spacing: -0.005em; }
+  .dim-row .score { font-family: var(--mono); font-size: 13px; font-weight: 600; }
+  .dim-row .score.red { color: var(--red); }
+  .dim-row .score.yellow { color: var(--yellow); }
+  .dim-row .score.green { color: var(--owner-700); }
+  .dim-row .score.pending { color: var(--ink-400); }
+  .dim-row .bar {
+    height: 4px; background: var(--ink-100); border-radius: 2px; overflow: hidden; margin-bottom: 10px;
+  }
+  .dim-row .bar-fill { height: 100%; transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .dim-row .bar-fill.red { background: var(--red); }
+  .dim-row .bar-fill.yellow { background: var(--yellow); }
+  .dim-row .bar-fill.green { background: var(--owner-600); }
+  .dim-row .summary { color: var(--ink-600); font-size: 12.5px; line-height: 1.55; margin-top: 4px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--ink-100); color: var(--ink-700);
+    padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 500;
+    border: 1px solid var(--ink-200); margin-top: 8px;
+  }
+  .pill.owner {
+    background: var(--owner-50); color: var(--owner-700); border-color: var(--owner-200);
+  }
+  .pill.human {
+    background: var(--blue-soft); color: var(--blue); border-color: #BFD6F0;
+  }
+  .pill .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* Inline fix snippet inside dim row */
+  .fix-inline {
+    margin-top: 8px; padding: 8px 10px;
+    background: var(--ink-50); border: 1px solid var(--ink-100);
+    border-left: 2px solid var(--owner-400);
+    border-radius: 4px;
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-800);
+    line-height: 1.55;
+  }
+  .fix-inline-label {
+    font-family: var(--sans); font-size: 9.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--owner-700); margin-bottom: 4px;
+  }
+
+  /* Fix card */
+  .fix-card {
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--owner-600);
+    border-radius: 8px; padding: 14px 16px; margin-bottom: 10px;
+    box-shadow: 0 1px 0 rgba(15, 15, 14, 0.02);
+  }
+  .fix-card .fix-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .fix-card .fix-title { font-weight: 600; font-size: 14px; color: var(--ink-900); letter-spacing: -0.005em; }
+  .fix-card .fix-content {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-800);
+    background: var(--ink-50); padding: 11px 13px; border-radius: 6px;
+    border: 1px solid var(--ink-100); white-space: pre-wrap; word-break: break-word;
+    line-height: 1.6;
+  }
+
+  /* Competitor card */
+  .comp-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 10px;
+    box-shadow: 0 1px 0 rgba(15, 15, 14, 0.02);
+  }
+  .comp-card .comp-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .comp-card .comp-name { font-weight: 600; font-size: 14px; color: var(--ink-900); }
+  .comp-card .comp-url { font-family: var(--mono); font-size: 11px; color: var(--ink-500); }
+  .comp-card .comp-better { color: var(--ink-700); font-size: 13px; margin-top: 8px; line-height: 1.6; }
+
+  /* Pitch */
+  .pitch-card {
+    background: linear-gradient(135deg, var(--owner-50) 0%, #FFFFFF 100%);
+    border: 1px solid var(--owner-200); border-radius: 10px; padding: 20px 22px;
+    font-size: 14px; line-height: 1.65; color: var(--ink-800);
+    position: relative; overflow: hidden;
+  }
+  .pitch-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--owner-600);
+  }
+  .pitch-card .pitch-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--owner-700);
+    font-weight: 700; margin-bottom: 10px;
+  }
+  .pitch-card .pitch-text {
+    font-family: var(--serif); font-size: 16px; font-weight: 400;
+    line-height: 1.55; color: var(--ink-900); letter-spacing: -0.005em;
+  }
+
+  /* Modal */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(15, 15, 14, 0.55); backdrop-filter: blur(4px);
+    z-index: 100; display: none; align-items: center; justify-content: center;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    width: min(720px, 92vw); max-height: 86vh; overflow-y: auto; padding: 24px;
+    box-shadow: 0 20px 50px rgba(15, 15, 14, 0.18);
+  }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .modal-head h2 { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-900); }
+  .modal-close {
+    background: none; border: none; color: var(--ink-500); font-size: 22px;
+    cursor: pointer; line-height: 1; padding: 0 6px;
+  }
+  .modal-close:hover { color: var(--ink-900); }
+  .eval-case {
+    border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 10px;
+    background: var(--ink-50);
+  }
+  .eval-case .eval-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .eval-case .eval-url { font-family: var(--mono); font-size: 12px; color: var(--ink-900); }
+  .eval-case .eval-status {
+    font-size: 11px; color: var(--ink-500); font-family: var(--mono); font-weight: 700;
+    padding: 3px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  }
+  .eval-case .eval-status.pass { color: var(--owner-700); background: var(--owner-50); border-color: var(--owner-200); }
+  .eval-case .eval-status.fail { color: var(--red); background: var(--red-soft); border-color: #F5C2C2; }
+  .eval-case .eval-status.running { color: var(--yellow); background: var(--yellow-soft); border-color: #ECD9A8; }
+  .eval-checks { display: grid; gap: 4px; margin-top: 8px; }
+  .eval-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-600); font-family: var(--mono); }
+  .eval-check .check-icon { width: 14px; text-align: center; font-weight: 700; }
+  .eval-check.pass .check-icon { color: var(--owner-700); }
+  .eval-check.fail .check-icon { color: var(--red); }
+  .eval-check.pending .check-icon { color: var(--ink-400); }
+  .eval-summary {
+    margin-top: 16px; padding: 14px 16px; background: var(--owner-50); border-radius: 8px;
+    border: 1px solid var(--owner-200); font-family: var(--mono); font-size: 13px; color: var(--ink-800);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 20px 24px; color: var(--ink-500); font-size: 12px;
+    border-top: 1px solid var(--border); background: var(--bg);
+  }
+  .footer a { color: var(--owner-700); }
+  .hidden { display: none !important; }
+
+  /* Errors */
+  .banner-error {
+    background: var(--red-soft); border: 1px solid #F5C2C2; color: var(--red);
+    padding: 10px 14px; border-radius: 8px; margin: 12px 0;
+    font-size: 13px;
+  }
+
+  /* Iteration counter */
+  .iter-counter {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-400); font-size: 11px; font-family: var(--mono); font-weight: 500;
+  }
+  .panel.left .iter-counter { color: var(--ink-400); }
+  .iter-counter .iter-num { color: var(--ink-200); font-weight: 700; }
+
+  /* scrollbars */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--ink-200); border-radius: 6px;
+    border: 2px solid transparent; background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-300); background-clip: padding-box; border: 2px solid transparent; }
+  .panel.left::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); background-clip: padding-box; }
+  .panel.left::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); background-clip: padding-box; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">O</div>
+    <div class="brand-text">
+      <div class="brand-mark">Owner SEO Agent <span class="badge">Internal</span></div>
+      <span class="brand-sub">Built by Omar Abbasi · Applied AI Lead candidate</span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <input id="apiKey" class="key-input" type="password" placeholder="sk-ant-... (API key)" autocomplete="off" />
+    <button class="btn btn-ghost" id="evalsBtn">Evals</button>
+    <button class="btn btn-ghost" id="resetBtn" style="display:none;">New Run</button>
+  </div>
+</header>
+
+<main>
+  <!-- Input -->
+  <section class="input-section" id="inputSection">
+    <h1 class="h1">Restaurant in. <em>Prioritized</em> SEO gap report out.</h1>
+    <p class="lede">A real agentic loop &mdash; Claude decides what to fetch, which competitors to research, and when it has enough evidence. Mirrors exactly what Owner.com&rsquo;s AI platform automates for independent restaurants.</p>
+    <div class="url-row">
+      <input id="urlInput" class="url-input" type="text" placeholder="https://www.somerestaurant.com" />
+      <button id="runBtn" class="btn btn-primary run-btn">Run Agent</button>
+    </div>
+    <div class="preset-row">
+      <span class="preset" data-url="https://mattengaspizzeria.com">mattengaspizzeria.com</span>
+      <span class="preset" data-url="https://www.lupasoho.com">lupasoho.com</span>
+      <span class="preset" data-url="https://www.rosaliesnyc.com">rosaliesnyc.com</span>
+    </div>
+    <p class="input-hint">Add your Anthropic API key in the top-right (stored only in your browser&rsquo;s localStorage). Uses <code>claude-opus-4-7</code> with server-side <code>web_search</code> + <code>web_fetch</code>.</p>
+    <div id="apiBanner"></div>
+  </section>
+
+  <!-- Run -->
+  <section class="run-section hidden" id="runSection">
+    <div class="panel left">
+      <div class="panel-title">
+        <span class="dot idle" id="liveDot"></span>
+        Agent Activity Log
+        <span class="iter-counter" style="margin-left:auto;">iter <span class="iter-num" id="iterCount">0</span> / 15</span>
+      </div>
+      <div class="log" id="log"></div>
+    </div>
+    <div class="panel right">
+      <div class="panel-title">
+        <span class="dot"></span>
+        Report Builder
+      </div>
+      <div class="report-section" id="reportHeader">
+        <h2>Restaurant</h2>
+        <div class="empty-state">Awaiting analysis…</div>
+      </div>
+      <div class="report-section" id="reportGauge">
+        <h2>Overall Score</h2>
+        <div class="empty-state">Awaiting analysis…</div>
+      </div>
+      <div class="report-section" id="reportDims">
+        <h2>Dimension Scorecard</h2>
+        <div id="dimList"></div>
+      </div>
+      <div class="report-section" id="reportFixes">
+        <h2>Specific Fixes</h2>
+        <div class="empty-state">Findings will surface here as the agent works…</div>
+      </div>
+      <div class="report-section" id="reportComps">
+        <h2>Competitor Analysis</h2>
+        <div class="empty-state">Awaiting competitor research…</div>
+      </div>
+      <div class="report-section" id="reportPitch">
+        <h2>The Owner Pitch</h2>
+        <div class="empty-state">Generated when the agent completes…</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Evals modal -->
+<div class="modal-bg" id="evalsModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Eval Suite</h2>
+      <button class="modal-close" id="evalsClose">&times;</button>
+    </div>
+    <p class="lede" style="font-size:13px; margin: 0 0 16px;">
+      Three hardcoded test cases. Each run grades the agent on 5 dimensions. This is the differentiator: the agent must do the right things, not just produce something.
+    </p>
+    <div id="evalCases"></div>
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn btn-primary" id="runEvalsBtn">Run Eval Suite</button>
+      <button class="btn" id="resetEvalsBtn">Reset</button>
+    </div>
+    <div id="evalSummary"></div>
+  </div>
+</div>
+
+<footer class="footer">
+  Built in ~6 hours with Claude Code. Source: github.com/oabbasi1/owner-seo-agent ·
+  Want to talk about what else I&rsquo;d build for Owner? omar@omarabbasi.com
+</footer>
+
+<script>
+(() => {
+  // ---------- Config ----------
+  const MODEL = 'claude-opus-4-7';
+  const API_URL = 'https://api.anthropic.com/v1/messages';
+  const ANTHROPIC_VERSION = '2023-06-01';
+  const MAX_ITERATIONS = 15;
+  const STALL_TIMEOUT_MS = 30000;
+
+  const DIMENSIONS = [
+    'Title & Meta optimization',
+    'Heading structure & keyword targeting',
+    'Menu SEO',
+    'Schema markup',
+    'Google Business Profile signals on-site',
+    'Content depth & local relevance',
+    'Direct ordering CTA prominence vs. third-party dependency',
+    'Mobile/technical SEO signals'
+  ];
+
+  const SYSTEM_PROMPT = `You are a senior local SEO strategist working inside Owner.com's Applied AI team.
+Your job: analyze an independent restaurant's web presence and produce a
+prioritized gap report that demonstrates exactly what Owner.com's AI platform
+would automate for them.
+
+You operate agentically. You decide:
+- What to fetch and when
+- Which competitors to research (you must identify and analyze 2-3 real direct competitors based on cuisine + geography)
+- When you have enough evidence to score each dimension
+- When the analysis is complete
+
+Dimensions to score (0-10 each):
+1. Title & Meta optimization
+2. Heading structure & keyword targeting
+3. Menu SEO (are items described with searchable language?)
+4. Schema markup (Restaurant, Menu, LocalBusiness)
+5. Google Business Profile signals on-site
+6. Content depth & local relevance
+7. Direct ordering CTA prominence vs. third-party dependency
+8. Mobile/technical SEO signals detectable from HTML
+
+For every finding, write the SPECIFIC fix — not "improve the meta description"
+but the actual improved meta description, ready to paste in. Tag each fix with
+whether Owner.com's AI platform would handle it automatically (ownerHandles=true)
+or whether it needs human input (ownerHandles=false).
+
+Reasoning style: think out loud briefly between tool calls so the user sees
+your decision-making. Stay terse — this is a working tool, not an essay.
+
+Workflow:
+1. Fetch the target URL with web_fetch first.
+2. Identify cuisine + city from the page.
+3. Use web_search to find 2-3 direct competitors in the same city/cuisine.
+4. Fetch competitor pages (web_fetch) for comparison.
+5. Call record_finding for EACH of the 8 dimensions (one per dimension).
+6. When all 8 dimensions are scored AND competitors are analyzed, call complete_analysis with the final report.
+
+End with a concrete pitch: in 2-3 sentences, what would happen to this
+restaurant's organic traffic if they switched to Owner.com? Be specific and
+defensible, not hyped.
+
+Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient with tool calls.`;
+
+  // ---------- Tool Defs ----------
+  const TOOLS = [
+    { type: 'web_search_20250305', name: 'web_search', max_uses: 8 },
+    { type: 'web_fetch_20250910',  name: 'web_fetch',  max_uses: 8 },
+    {
+      name: 'record_finding',
+      description: 'Save a structured finding for one of the 8 SEO dimensions. Call exactly once per dimension.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          dimension: { type: 'string', enum: DIMENSIONS, description: 'Which dimension this finding scores' },
+          score: { type: 'number', minimum: 0, maximum: 10, description: 'Score 0-10 for this dimension' },
+          evidence: { type: 'string', description: 'Specific evidence from the fetched HTML or competitor data' },
+          fix: { type: 'string', description: 'The exact improved copy/markup, ready to paste in. Not generic advice.' },
+          ownerHandles: { type: 'boolean', description: 'True if Owner.com’s AI platform automates this fix; false if it needs human input' }
+        },
+        required: ['dimension', 'score', 'evidence', 'fix', 'ownerHandles']
+      }
+    },
+    {
+      name: 'complete_analysis',
+      description: 'Signal that the analysis is complete and emit the final consolidated report. Call once at the very end after all dimensions are recorded.',
+      input_schema: {
+        type: 'object',
+        properties: {
+          restaurant: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              city: { type: 'string' },
+              cuisine: { type: 'string' }
+            },
+            required: ['name', 'city', 'cuisine']
+          },
+          overallScore: { type: 'number', minimum: 0, maximum: 100, description: 'Overall 0-100 score (roughly average of dimension scores * 10)' },
+          topFixes: {
+            type: 'array',
+            description: 'Top 3 prioritized actions with the actual rewritten copy/markup',
+            items: {
+              type: 'object',
+              properties: {
+                title: { type: 'string' },
+                content: { type: 'string', description: 'The exact rewritten copy/markup' },
+                ownerHandles: { type: 'boolean' }
+              },
+              required: ['title', 'content', 'ownerHandles']
+            }
+          },
+          competitors: {
+            type: 'array',
+            description: '2-3 real direct competitor cards',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                url: { type: 'string' },
+                doingBetter: { type: 'string' }
+              },
+              required: ['name', 'url', 'doingBetter']
+            }
+          },
+          pitch: { type: 'string', description: '2-3 sentence concrete projection of organic-traffic impact if they switched to Owner.com' }
+        },
+        required: ['restaurant', 'overallScore', 'topFixes', 'competitors', 'pitch']
+      }
+    }
+  ];
+
+  // ---------- DOM ----------
+  const $ = sel => document.querySelector(sel);
+  const apiKeyEl = $('#apiKey');
+  const urlInputEl = $('#urlInput');
+  const runBtn = $('#runBtn');
+  const resetBtn = $('#resetBtn');
+  const evalsBtn = $('#evalsBtn');
+  const evalsModal = $('#evalsModal');
+  const evalsClose = $('#evalsClose');
+  const runEvalsBtn = $('#runEvalsBtn');
+  const resetEvalsBtn = $('#resetEvalsBtn');
+  const inputSection = $('#inputSection');
+  const runSection = $('#runSection');
+  const logEl = $('#log');
+  const apiBannerEl = $('#apiBanner');
+  const liveDot = $('#liveDot');
+  const iterCountEl = $('#iterCount');
+
+  // ---------- API key ----------
+  apiKeyEl.value = localStorage.getItem('anthropic_api_key') || '';
+  apiKeyEl.addEventListener('change', () => {
+    localStorage.setItem('anthropic_api_key', apiKeyEl.value.trim());
+  });
+
+  // ---------- Presets ----------
+  document.querySelectorAll('.preset').forEach(el => {
+    el.addEventListener('click', () => {
+      urlInputEl.value = el.dataset.url;
+    });
+  });
+
+  // ---------- Helpers ----------
+  const ts = () => {
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+  };
+  const tsLong = ts;
+  const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const truncate = (s, n=180) => {
+    s = String(s ?? '');
+    return s.length > n ? s.slice(0, n) + '…' : s;
+  };
+  const validateUrl = u => {
+    try {
+      const parsed = new URL(u.startsWith('http') ? u : 'https://' + u);
+      return parsed.toString();
+    } catch { return null; }
+  };
+
+  // ---------- Activity log ----------
+  function addLogItem({ icon, type, text, full }) {
+    const div = document.createElement('div');
+    div.className = 'log-item';
+    const safeFull = full ?? text ?? '';
+    div.innerHTML = `
+      <div class="icon">${icon}</div>
+      <div class="ts">${ts()}</div>
+      <div class="body ${type || ''}">${escapeHtml(text || '')}</div>
+    `;
+    if (full && full.length > (text || '').length) {
+      div.dataset.full = safeFull;
+      div.dataset.short = text || '';
+      const body = div.querySelector('.body');
+      body.style.cursor = 'pointer';
+      body.addEventListener('click', () => {
+        div.classList.toggle('expanded');
+        body.textContent = div.classList.contains('expanded') ? safeFull : div.dataset.short;
+      });
+    }
+    logEl.appendChild(div);
+    logEl.parentElement.scrollTop = logEl.parentElement.scrollHeight;
+    return div;
+  }
+  function updateLastLogItem(text) {
+    const items = logEl.querySelectorAll('.log-item');
+    if (!items.length) return;
+    const body = items[items.length - 1].querySelector('.body');
+    body.textContent = text;
+  }
+
+  // ---------- Report rendering ----------
+  const reportState = {
+    restaurant: null,
+    overallScore: null,
+    findings: {},     // dimension -> finding
+    topFixes: [],
+    competitors: [],
+    pitch: null,
+    targetUrl: null
+  };
+  function resetReport(url) {
+    reportState.restaurant = null;
+    reportState.overallScore = null;
+    reportState.findings = {};
+    reportState.topFixes = [];
+    reportState.competitors = [];
+    reportState.pitch = null;
+    reportState.targetUrl = url;
+
+    $('#reportHeader').innerHTML = '<h2>Restaurant</h2><div class="empty-state">Identifying from page…</div>';
+    $('#reportGauge').innerHTML = '<h2>Overall Score</h2><div class="empty-state">Awaiting findings…</div>';
+    $('#reportFixes').innerHTML = '<h2>Specific Fixes</h2><div class="empty-state">Findings will surface here as the agent works…</div>';
+    $('#reportComps').innerHTML = '<h2>Competitor Analysis</h2><div class="empty-state">Awaiting competitor research…</div>';
+    $('#reportPitch').innerHTML = '<h2>The Owner Pitch</h2><div class="empty-state">Generated when the agent completes…</div>';
+
+    // Render dimension placeholders
+    const dimList = document.getElementById('dimList');
+    dimList.innerHTML = '';
+    DIMENSIONS.forEach(d => {
+      const row = document.createElement('div');
+      row.className = 'dim-row';
+      row.dataset.dim = d;
+      row.innerHTML = `
+        <div>
+          <div class="dim-head">
+            <div class="dim-name">${escapeHtml(d)}</div>
+            <div class="score pending">— / 10</div>
+          </div>
+          <div class="bar"><div class="bar-fill" style="width:0%;"></div></div>
+          <div class="summary">Awaiting evidence…</div>
+        </div>
+      `;
+      dimList.appendChild(row);
+    });
+  }
+  function colorClass(score) {
+    if (score == null) return 'pending';
+    if (score < 5) return 'red';
+    if (score < 8) return 'yellow';
+    return 'green';
+  }
+  function applyFinding(f) {
+    reportState.findings[f.dimension] = f;
+    const row = document.querySelector(`.dim-row[data-dim="${CSS.escape(f.dimension)}"]`);
+    if (!row) return;
+    const cls = colorClass(f.score);
+    row.querySelector('.score').className = `score ${cls}`;
+    row.querySelector('.score').textContent = `${Number(f.score).toFixed(1)} / 10`;
+    const fill = row.querySelector('.bar-fill');
+    fill.className = `bar-fill ${cls}`;
+    fill.style.width = `${(f.score/10)*100}%`;
+    const summary = row.querySelector('.summary');
+    const pillCls = f.ownerHandles ? 'owner' : 'human';
+    const pillText = f.ownerHandles ? 'Owner AI handles this' : 'Human input needed';
+    summary.innerHTML = `
+      <div>${escapeHtml(f.evidence)}</div>
+      <div style="margin-top:6px; padding:6px 8px; background: var(--bg); border:1px solid var(--border); border-radius:4px; font-family: var(--mono); font-size:11px; color: var(--text);">
+        Fix → ${escapeHtml(f.fix)}
+      </div>
+      <span class="pill ${pillCls}"><span class="pill-dot"></span>${pillText}</span>
+    `;
+  }
+  function applyComplete(data) {
+    if (data.restaurant) {
+      reportState.restaurant = data.restaurant;
+      $('#reportHeader').innerHTML = `
+        <h2>Restaurant</h2>
+        <div class="header-card">
+          <div class="name">${escapeHtml(data.restaurant.name || '—')}</div>
+          <div class="meta">
+            <span>${escapeHtml(data.restaurant.cuisine || '')}</span>
+            <span>${escapeHtml(data.restaurant.city || '')}</span>
+          </div>
+          <div class="url">${escapeHtml(reportState.targetUrl || '')}</div>
+        </div>
+      `;
+    }
+    if (typeof data.overallScore === 'number') {
+      reportState.overallScore = data.overallScore;
+      renderGauge(data.overallScore);
+    }
+    if (Array.isArray(data.topFixes)) {
+      reportState.topFixes = data.topFixes;
+      const html = data.topFixes.map(f => {
+        const pillCls = f.ownerHandles ? 'owner' : 'human';
+        const pillText = f.ownerHandles ? 'Owner AI handles this' : 'Human input needed';
+        return `
+          <div class="fix-card">
+            <div class="fix-head">
+              <div class="fix-title">${escapeHtml(f.title)}</div>
+              <span class="pill ${pillCls}"><span class="pill-dot"></span>${pillText}</span>
+            </div>
+            <div class="fix-content">${escapeHtml(f.content)}</div>
+          </div>
+        `;
+      }).join('');
+      $('#reportFixes').innerHTML = `<h2>Specific Fixes</h2>${html || '<div class="empty-state">No top-priority fixes returned.</div>'}`;
+    }
+    if (Array.isArray(data.competitors)) {
+      reportState.competitors = data.competitors;
+      const html = data.competitors.map(c => `
+        <div class="comp-card">
+          <div class="comp-head">
+            <div class="comp-name">${escapeHtml(c.name)}</div>
+            <div class="comp-url">${escapeHtml(c.url)}</div>
+          </div>
+          <div class="comp-better">${escapeHtml(c.doingBetter)}</div>
+        </div>
+      `).join('');
+      $('#reportComps').innerHTML = `<h2>Competitor Analysis</h2>${html || '<div class="empty-state">No competitors returned.</div>'}`;
+    }
+    if (data.pitch) {
+      reportState.pitch = data.pitch;
+      $('#reportPitch').innerHTML = `
+        <h2>The Owner Pitch</h2>
+        <div class="pitch-card">
+          <div class="pitch-label">If they switched to Owner.com</div>
+          ${escapeHtml(data.pitch)}
+        </div>
+      `;
+    }
+  }
+  function renderGauge(score) {
+    const cls = score < 50 ? 'red' : score < 75 ? 'yellow' : 'green';
+    const colorVar = cls === 'red' ? 'var(--red)' : cls === 'yellow' ? 'var(--yellow)' : 'var(--green)';
+    const r = 56;
+    const c = 2 * Math.PI * r;
+    const offset = c - (Math.min(100, Math.max(0, score)) / 100) * c;
+    const desc = score >= 75 ? 'Strong baseline. Optimization opportunities are incremental.' :
+                 score >= 50 ? 'Material gaps. Owner.com would close most of them automatically.' :
+                               'Significant gaps across multiple dimensions. High-leverage fix opportunity.';
+    $('#reportGauge').innerHTML = `
+      <h2>Overall Score</h2>
+      <div class="gauge-card">
+        <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="${r}" stroke="var(--border)" stroke-width="8" fill="none" />
+          <circle cx="70" cy="70" r="${r}" stroke="${colorVar}" stroke-width="8" fill="none"
+            stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${offset}"
+            transform="rotate(-90 70 70)" style="transition: stroke-dashoffset 0.8s ease;" />
+          <text x="70" y="78" text-anchor="middle" fill="var(--text)" font-size="28" font-weight="700" font-family="var(--sans)">${Math.round(score)}</text>
+        </svg>
+        <div class="gauge-info">
+          <div class="label">Composite SEO health</div>
+          <div class="num" style="color:${colorVar};">${Math.round(score)} / 100</div>
+          <div class="desc">${escapeHtml(desc)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ---------- Streaming Anthropic API client ----------
+  /**
+   * Stream a /v1/messages call and return a Promise that resolves with
+   * the final assembled assistant message: { role, content: [...], stop_reason }
+   * Server-side tools (web_search, web_fetch) are auto-executed by the API and
+   * appear as tool_use + auto-included tool_result blocks in the same assistant turn.
+   */
+  async function streamMessages({ apiKey, messages, onText, onToolUse, onError }) {
+    const body = {
+      model: MODEL,
+      max_tokens: 8192,
+      system: SYSTEM_PROMPT,
+      tools: TOOLS,
+      messages,
+      stream: true
+    };
+    const resp = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': ANTHROPIC_VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'anthropic-beta': 'web-fetch-2025-09-10'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok || !resp.body) {
+      let txt = '';
+      try { txt = await resp.text(); } catch {}
+      throw new Error(`API error ${resp.status}: ${txt || resp.statusText}`);
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    const blocks = [];     // assembled content blocks for the assistant message
+    const partial = {};    // index -> partial state {type, text|input_json}
+    let stopReason = null;
+
+    const handleEvent = (eventName, data) => {
+      try { data = JSON.parse(data); } catch { return; }
+      if (eventName === 'content_block_start') {
+        const idx = data.index;
+        const cb = data.content_block;
+        partial[idx] = { ...cb };
+        if (cb.type === 'tool_use') {
+          partial[idx].input_json = '';
+          if (onToolUse) onToolUse({ phase: 'start', name: cb.name, id: cb.id });
+        } else if (cb.type === 'server_tool_use') {
+          partial[idx].input_json = '';
+          if (onToolUse) onToolUse({ phase: 'start', name: cb.name, id: cb.id, server: true });
+        } else if (cb.type === 'web_search_tool_result' || cb.type === 'web_fetch_tool_result') {
+          if (onToolUse) onToolUse({ phase: 'server_result', name: cb.type });
+        }
+      } else if (eventName === 'content_block_delta') {
+        const idx = data.index;
+        const delta = data.delta;
+        const p = partial[idx];
+        if (!p) return;
+        if (delta.type === 'text_delta') {
+          p.text = (p.text || '') + delta.text;
+          if (onText) onText(delta.text, p.text);
+        } else if (delta.type === 'input_json_delta') {
+          p.input_json = (p.input_json || '') + delta.partial_json;
+          if (onToolUse) onToolUse({ phase: 'arg_delta', name: p.name, partial_json: p.input_json });
+        }
+      } else if (eventName === 'content_block_stop') {
+        const idx = data.index;
+        const p = partial[idx];
+        if (!p) return;
+        if (p.type === 'tool_use' || p.type === 'server_tool_use') {
+          try { p.input = p.input_json ? JSON.parse(p.input_json) : {}; }
+          catch (e) { p.input = {}; }
+          delete p.input_json;
+          if (onToolUse) onToolUse({ phase: 'stop', name: p.name, id: p.id, input: p.input, server: p.type === 'server_tool_use' });
+        }
+        blocks[idx] = p;
+      } else if (eventName === 'message_delta') {
+        if (data.delta && data.delta.stop_reason) stopReason = data.delta.stop_reason;
+      } else if (eventName === 'message_stop') {
+        // done
+      } else if (eventName === 'error') {
+        if (onError) onError(data);
+      }
+    };
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      // Parse SSE events: split by double newline
+      let sep;
+      while ((sep = buf.indexOf('\n\n')) !== -1) {
+        const raw = buf.slice(0, sep);
+        buf = buf.slice(sep + 2);
+        let eventName = 'message';
+        let dataLines = [];
+        for (const line of raw.split('\n')) {
+          if (line.startsWith('event:')) eventName = line.slice(6).trim();
+          else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+        }
+        if (dataLines.length) handleEvent(eventName, dataLines.join('\n'));
+      }
+    }
+    // Re-pack content blocks (drop indexes, keep order). Strip helper keys.
+    const finalContent = blocks
+      .filter(Boolean)
+      .map(b => {
+        const out = { type: b.type };
+        if (b.type === 'text') out.text = b.text || '';
+        else if (b.type === 'tool_use' || b.type === 'server_tool_use') {
+          out.id = b.id; out.name = b.name; out.input = b.input || {};
+        } else if (b.type === 'web_search_tool_result' || b.type === 'web_fetch_tool_result') {
+          out.tool_use_id = b.tool_use_id; out.content = b.content;
+        } else {
+          // pass through
+          Object.assign(out, b);
+        }
+        return out;
+      });
+    return { role: 'assistant', content: finalContent, stop_reason: stopReason };
+  }
+
+  // ---------- Agent runner ----------
+  async function runAgent({ apiKey, url, hooks = {} }) {
+    const messages = [{ role: 'user', content: `Analyze ${url}. Produce a full SEO gap report.` }];
+    let iterations = 0;
+    let finalReport = null;
+    let toolCallsMade = 0;
+    const findings = {};
+
+    while (iterations < MAX_ITERATIONS) {
+      iterations++;
+      hooks.onIter?.(iterations);
+
+      let currentTextItem = null;
+      let assistantMsg;
+      try {
+        assistantMsg = await streamMessages({
+          apiKey,
+          messages,
+          onText: (chunk, full) => {
+            if (!currentTextItem) {
+              currentTextItem = addLogItem({ icon: '🧠', type: 'thinking', text: full });
+            } else {
+              currentTextItem.querySelector('.body').textContent = full;
+            }
+          },
+          onToolUse: ({ phase, name, input, server }) => {
+            if (phase === 'start') {
+              currentTextItem = null;
+            } else if (phase === 'stop') {
+              toolCallsMade++;
+              const icon = name === 'web_search' ? '🔍' :
+                           name === 'web_fetch' ? '📄' :
+                           name === 'record_finding' ? '✓' :
+                           name === 'complete_analysis' ? '🎯' : '⚙️';
+              const summary = (() => {
+                if (name === 'web_search') return `web_search · "${input.query || ''}"`;
+                if (name === 'web_fetch')  return `web_fetch  · ${input.url || ''}`;
+                if (name === 'record_finding') return `record_finding · ${input.dimension} (${input.score}/10)`;
+                if (name === 'complete_analysis') return `complete_analysis · final report`;
+                return `${name}`;
+              })();
+              const full = JSON.stringify(input, null, 2);
+              addLogItem({ icon, type: 'tool', text: summary, full: `${summary}\n\n${full}` });
+              if (name === 'record_finding') {
+                applyFinding(input);
+                findings[input.dimension] = input;
+              } else if (name === 'complete_analysis') {
+                applyComplete(input);
+                finalReport = input;
+              }
+            }
+          },
+          onError: (err) => {
+            addLogItem({ icon: '⚠️', type: 'error', text: `Stream error: ${err?.error?.message || JSON.stringify(err)}` });
+          }
+        });
+      } catch (e) {
+        addLogItem({ icon: '⚠️', type: 'error', text: `API error: ${e.message}` });
+        throw e;
+      }
+
+      messages.push({ role: 'assistant', content: assistantMsg.content });
+
+      // If the agent called complete_analysis, we're done.
+      if (finalReport) {
+        addLogItem({ icon: '🎯', type: 'complete', text: `Agent completed in ${iterations} iteration${iterations===1?'':'s'} with ${toolCallsMade} tool calls.` });
+        break;
+      }
+
+      // Process client-side tool calls (record_finding, complete_analysis).
+      // Server-side tool results (web_search, web_fetch) are auto-included by the API.
+      const toolUses = assistantMsg.content.filter(b => b.type === 'tool_use');
+      if (toolUses.length === 0) {
+        if (assistantMsg.stop_reason === 'end_turn') {
+          addLogItem({ icon: 'ℹ️', type: 'system', text: `Agent ended turn without calling complete_analysis. Stopping.` });
+        }
+        break;
+      }
+      const toolResults = toolUses.map(tu => {
+        let result;
+        if (tu.name === 'record_finding') {
+          result = `Finding recorded for "${tu.input.dimension}" with score ${tu.input.score}/10.`;
+        } else if (tu.name === 'complete_analysis') {
+          result = `Analysis complete. Report emitted.`;
+        } else {
+          result = `Tool ${tu.name} executed.`;
+        }
+        return {
+          type: 'tool_result',
+          tool_use_id: tu.id,
+          content: result
+        };
+      });
+      messages.push({ role: 'user', content: toolResults });
+    }
+
+    if (!finalReport) {
+      addLogItem({ icon: 'ℹ️', type: 'system', text: `Reached iteration cap (${MAX_ITERATIONS}) without complete_analysis. Findings so far are shown.` });
+    }
+
+    return { finalReport, iterations, toolCallsMade, findings };
+  }
+
+  // ---------- UI: run ----------
+  runBtn.addEventListener('click', async () => {
+    const url = validateUrl(urlInputEl.value.trim());
+    const apiKey = apiKeyEl.value.trim();
+    if (!url) { showBanner('Enter a valid URL.'); return; }
+    if (!apiKey) { showBanner('Add an Anthropic API key in the top-right.'); return; }
+    localStorage.setItem('anthropic_api_key', apiKey);
+
+    inputSection.classList.add('hidden');
+    runSection.classList.remove('hidden');
+    resetBtn.style.display = 'inline-block';
+    logEl.innerHTML = '';
+    resetReport(url);
+    addLogItem({ icon: '▶︎', type: 'system', text: `Starting agent on ${url}` });
+    liveDot.classList.remove('idle');
+    liveDot.classList.add('live');
+    runBtn.disabled = true;
+
+    try {
+      await runAgent({
+        apiKey,
+        url,
+        hooks: { onIter: (n) => { iterCountEl.textContent = n; } }
+      });
+    } catch (e) {
+      addLogItem({ icon: '⚠️', type: 'error', text: `Run failed: ${e.message}` });
+    } finally {
+      liveDot.classList.remove('live');
+      liveDot.classList.add('idle');
+      runBtn.disabled = false;
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    inputSection.classList.remove('hidden');
+    runSection.classList.add('hidden');
+    resetBtn.style.display = 'none';
+    iterCountEl.textContent = '0';
+  });
+
+  function showBanner(msg) {
+    apiBannerEl.innerHTML = `<div class="banner-error">${escapeHtml(msg)}</div>`;
+    setTimeout(() => apiBannerEl.innerHTML = '', 4000);
+  }
+
+  // ---------- Evals ----------
+  const EVAL_CASES = [
+    {
+      url: 'https://mattengaspizzeria.com',
+      label: 'Owner.com customer (baseline)',
+      expectedOverallMin: 60,
+      expectedOverallMax: 95
+    },
+    {
+      url: 'https://www.lupasoho.com',
+      label: 'Independent NYC Italian',
+      expectedOverallMin: 30,
+      expectedOverallMax: 75
+    },
+    {
+      url: 'https://www.rosaliesnyc.com',
+      label: 'Independent NYC Italian #2',
+      expectedOverallMin: 30,
+      expectedOverallMax: 80
+    }
+  ];
+
+  function renderEvalCases(states = []) {
+    const wrap = $('#evalCases');
+    wrap.innerHTML = EVAL_CASES.map((c, i) => {
+      const s = states[i] || { status: 'idle', checks: {} };
+      const statusCls = s.status === 'pass' ? 'pass' : s.status === 'fail' ? 'fail' : s.status === 'running' ? 'running' : '';
+      const statusText = s.status === 'pass' ? 'PASS' :
+                         s.status === 'fail' ? 'FAIL' :
+                         s.status === 'running' ? 'RUNNING' : 'IDLE';
+      const checks = [
+        ['cuisineCity', 'Identified cuisine + city'],
+        ['competitors', 'Found ≥2 real competitors'],
+        ['allDims', 'Scored all 8 dimensions'],
+        ['specificFixes', 'Provided specific (non-generic) fixes'],
+        ['underCap', 'Completed in <15 iterations']
+      ];
+      const checksHtml = checks.map(([k, label]) => {
+        const v = s.checks?.[k];
+        const cls = v === true ? 'pass' : v === false ? 'fail' : 'pending';
+        const icon = v === true ? '✓' : v === false ? '✗' : '·';
+        return `<div class="eval-check ${cls}"><span class="check-icon">${icon}</span>${label}</div>`;
+      }).join('');
+      return `
+        <div class="eval-case">
+          <div class="eval-head">
+            <div>
+              <div class="eval-url">${escapeHtml(c.url)}</div>
+              <div style="color:var(--text-faint); font-size:11px;">${escapeHtml(c.label)}</div>
+            </div>
+            <div class="eval-status ${statusCls}">${statusText}</div>
+          </div>
+          <div class="eval-checks">${checksHtml}</div>
+          ${s.error ? `<div class="banner-error" style="margin-top:8px;">${escapeHtml(s.error)}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function gradeEval(c, result) {
+    const checks = {};
+    const r = result.finalReport || {};
+    checks.cuisineCity = !!(r.restaurant && r.restaurant.cuisine && r.restaurant.city);
+    checks.competitors = Array.isArray(r.competitors) && r.competitors.length >= 2;
+    checks.allDims = Object.keys(result.findings || {}).length === 8;
+    // Specific fixes heuristic: average length > 60 chars and at least one mentions concrete pattern (digits, < or >, or quotes)
+    const fixes = (r.topFixes || []).map(f => f.content || '');
+    const avgLen = fixes.length ? fixes.reduce((a,s) => a + s.length, 0)/fixes.length : 0;
+    const hasConcrete = fixes.some(s => /["{<].*[}">]/.test(s) || /\d/.test(s) || s.length > 80);
+    checks.specificFixes = fixes.length >= 2 && avgLen > 50 && hasConcrete;
+    checks.underCap = result.iterations < MAX_ITERATIONS;
+    const passed = Object.values(checks).filter(Boolean).length;
+    const status = passed === 5 ? 'pass' : passed >= 3 ? 'partial' : 'fail';
+    return { checks, passed, status };
+  }
+
+  let evalStates = [];
+  runEvalsBtn.addEventListener('click', async () => {
+    const apiKey = apiKeyEl.value.trim();
+    if (!apiKey) { showBanner('Add an Anthropic API key first.'); return; }
+    localStorage.setItem('anthropic_api_key', apiKey);
+
+    // Switch UI to run mode for visibility
+    inputSection.classList.add('hidden');
+    runSection.classList.remove('hidden');
+    resetBtn.style.display = 'inline-block';
+    runEvalsBtn.disabled = true;
+
+    evalStates = EVAL_CASES.map(() => ({ status: 'idle', checks: {} }));
+    renderEvalCases(evalStates);
+
+    let totalPass = 0, totalChecks = 0;
+    for (let i = 0; i < EVAL_CASES.length; i++) {
+      const c = EVAL_CASES[i];
+      evalStates[i] = { status: 'running', checks: {} };
+      renderEvalCases(evalStates);
+
+      logEl.innerHTML = '';
+      resetReport(c.url);
+      addLogItem({ icon: '▶︎', type: 'system', text: `[Eval ${i+1}/${EVAL_CASES.length}] ${c.url}` });
+      iterCountEl.textContent = '0';
+
+      try {
+        const result = await runAgent({
+          apiKey, url: c.url,
+          hooks: { onIter: (n) => { iterCountEl.textContent = n; } }
+        });
+        const grade = gradeEval(c, result);
+        evalStates[i] = { status: grade.status === 'pass' ? 'pass' : 'fail', checks: grade.checks };
+        totalPass += grade.passed;
+        totalChecks += 5;
+      } catch (e) {
+        evalStates[i] = { status: 'fail', checks: {}, error: e.message };
+      }
+      renderEvalCases(evalStates);
+    }
+
+    const summary = $('#evalSummary');
+    summary.innerHTML = `
+      <div class="eval-summary">
+        Total: <strong style="color: var(--text);">${totalPass}/${totalChecks}</strong> checks passed across ${EVAL_CASES.length} cases.
+      </div>
+    `;
+    runEvalsBtn.disabled = false;
+  });
+
+  resetEvalsBtn.addEventListener('click', () => {
+    evalStates = [];
+    renderEvalCases([]);
+    $('#evalSummary').innerHTML = '';
+  });
+
+  evalsBtn.addEventListener('click', () => {
+    renderEvalCases(evalStates);
+    evalsModal.classList.add('open');
+  });
+  evalsClose.addEventListener('click', () => evalsModal.classList.remove('open'));
+  evalsModal.addEventListener('click', (e) => { if (e.target === evalsModal) evalsModal.classList.remove('open'); });
+
+  // Initial paint of dimension placeholders so the right panel isn't blank
+  renderEvalCases([]);
+})();
+</script>
+</body>
+</html>
