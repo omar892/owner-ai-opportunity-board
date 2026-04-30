@@ -1573,7 +1573,11 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
 
   // Replay a pre-recorded run for one of the three demo URLs.
   function runDemoForUrl(url) {
-    const idx = EVAL_CASES.findIndex(c => c.url === url);
+    // validateUrl normalizes via new URL().toString() which appends "/" — strip
+    // it so the preset URLs in EVAL_CASES still match.
+    const canon = u => String(u || '').replace(/\/+$/, '');
+    const target = canon(url);
+    const idx = EVAL_CASES.findIndex(c => canon(c.url) === target);
     if (idx < 0) {
       showBanner('Demo mode only covers the three preset URLs. Pick a preset, or toggle off Demo Mode and add an API key to run live.');
       return;
