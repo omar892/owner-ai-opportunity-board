@@ -387,6 +387,34 @@
     margin-top: 16px; padding: 14px 16px; background: var(--owner-50); border-radius: 8px;
     border: 1px solid var(--owner-200); font-family: var(--mono); font-size: 13px; color: var(--ink-800);
   }
+  .eval-summary.demo {
+    background: var(--blue-soft); border-color: #BFD6F0; color: var(--blue);
+    font-family: var(--sans); font-size: 12.5px; line-height: 1.55;
+  }
+  .eval-summary.demo strong { color: var(--blue); }
+
+  /* Demo mode toggle */
+  .demo-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: var(--ink-50); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 14px;
+  }
+  .demo-toggle .toggle-label { display: flex; flex-direction: column; gap: 2px; }
+  .demo-toggle .toggle-title { font-size: 13px; font-weight: 600; color: var(--ink-900); }
+  .demo-toggle .toggle-sub { font-size: 11.5px; color: var(--ink-500); }
+  .switch { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--ink-300); border-radius: 22px; transition: background 0.2s ease;
+  }
+  .switch .slider::before {
+    content: ''; position: absolute;
+    height: 16px; width: 16px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: transform 0.2s ease;
+  }
+  .switch input:checked + .slider { background: var(--owner-600); }
+  .switch input:checked + .slider::before { transform: translateX(16px); }
 
   /* Footer */
   .footer {
@@ -511,9 +539,19 @@
     <p class="lede" style="font-size:13px; margin: 0 0 16px;">
       Three hardcoded test cases. Each run grades the agent on 5 dimensions. This is the differentiator: the agent must do the right things, not just produce something.
     </p>
+    <div class="demo-toggle">
+      <div class="toggle-label">
+        <div class="toggle-title">Demo Mode</div>
+        <div class="toggle-sub">Loads pre-recorded results instantly. No API quota consumed.</div>
+      </div>
+      <label class="switch" aria-label="Toggle demo mode">
+        <input type="checkbox" id="demoModeToggle" checked />
+        <span class="slider"></span>
+      </label>
+    </div>
     <div id="evalCases"></div>
     <div style="display:flex; gap:8px; margin-top:16px;">
-      <button class="btn btn-primary" id="runEvalsBtn">Run Eval Suite</button>
+      <button class="btn btn-primary" id="runEvalsBtn">Show Pre-Recorded Results</button>
       <button class="btn" id="resetEvalsBtn">Reset</button>
     </div>
     <div id="evalSummary"></div>
@@ -533,6 +571,7 @@
   const ANTHROPIC_VERSION = '2023-06-01';
   const MAX_ITERATIONS = 15;
   const STALL_TIMEOUT_MS = 30000;
+  const MAX_FETCH_CHARS = 12000; // ~3000 tokens at ~4 chars/token
 
   const DIMENSIONS = [
     'Title & Meta optimization',
@@ -896,6 +935,58 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     `;
   }
 
+  // ---------- Context-window optimizers ----------
+  // Strip HTML to plain text: drop scripts/styles/SVG/comments/nav/footer/base64 images.
+  function stripHtml(html) {
+    if (typeof html !== 'string') return html;
+    return html
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<svg\b[^>]*>[\s\S]*?<\/svg>/gi, '[svg]')
+      .replace(/<noscript\b[^>]*>[\s\S]*?<\/noscript>/gi, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<(nav|footer|header|aside)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+      .replace(/data:image\/[a-z+]+;base64,[A-Za-z0-9+/=]{40,}/gi, '[base64-image]')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  function capText(text) {
+    if (typeof text !== 'string' || text.length <= MAX_FETCH_CHARS) return text;
+    const kb = (text.length / 1024).toFixed(1);
+    return text.slice(0, MAX_FETCH_CHARS) + `\n\n[truncated, ${kb}kb total]`;
+  }
+  function sanitizeFetchBlock(block) {
+    try {
+      const inner = block && block.content && block.content.content;
+      if (inner && inner.source && typeof inner.source.data === 'string') {
+        inner.source.data = capText(stripHtml(inner.source.data));
+      }
+    } catch {}
+  }
+  function buildPrunedMessages(messages, prunedIds) {
+    if (!prunedIds.size) return messages;
+    return messages.map(msg => {
+      if (!Array.isArray(msg.content)) return msg;
+      let mutated = false;
+      const newContent = msg.content.map(block => {
+        if (block.type !== 'web_fetch_tool_result') return block;
+        if (!prunedIds.has(block.tool_use_id)) return block;
+        mutated = true;
+        const cloned = JSON.parse(JSON.stringify(block));
+        try {
+          if (cloned.content && cloned.content.content && cloned.content.content.source) {
+            cloned.content.content.source.data = '[fetched content pruned — finding(s) recorded from this source]';
+          }
+        } catch {}
+        return cloned;
+      });
+      return mutated ? { ...msg, content: newContent } : msg;
+    });
+  }
+
   // ---------- Streaming Anthropic API client ----------
   /**
    * Stream a /v1/messages call and return a Promise that resolves with
@@ -907,7 +998,8 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     const body = {
       model: MODEL,
       max_tokens: 8192,
-      system: SYSTEM_PROMPT,
+      // cache_control on system caches the (tools + system) prefix across iterations
+      system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       tools: TOOLS,
       messages,
       stream: true
@@ -1035,6 +1127,10 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
         }
         return out;
       });
+    // Strip HTML + cap fetched pages before they enter message history.
+    for (const b of finalContent) {
+      if (b.type === 'web_fetch_tool_result') sanitizeFetchBlock(b);
+    }
     return { role: 'assistant', content: finalContent, stop_reason: stopReason, usage, rateLimits };
   }
 
@@ -1072,6 +1168,8 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     const findings = {};
     let lastUsage = null;
     let lastRateLimits = null;
+    // Once a finding is recorded, prior fetches are dropped from context (latest turn's fetches are kept).
+    const prunedFetchIds = new Set();
 
     while (iterations < MAX_ITERATIONS) {
       iterations++;
@@ -1094,10 +1192,11 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
 
       let currentTextItem = null;
       let assistantMsg;
+      const apiMessages = buildPrunedMessages(messages, prunedFetchIds);
       try {
         assistantMsg = await streamMessages({
           apiKey,
-          messages,
+          messages: apiMessages,
           onText: (chunk, full) => {
             if (!currentTextItem) {
               currentTextItem = addLogItem({ icon: '🧠', type: 'thinking', text: full });
@@ -1156,6 +1255,39 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
       }
 
       messages.push({ role: 'assistant', content: assistantMsg.content });
+
+      // After a finding is recorded, drop prior fetched-page content from context.
+      // The current turn's fetches are kept (they may have driven this finding and the next).
+      const recordedFindingThisTurn = assistantMsg.content.some(
+        b => b.type === 'tool_use' && b.name === 'record_finding'
+      );
+      if (recordedFindingThisTurn) {
+        const currentTurnFetchIds = new Set(
+          assistantMsg.content
+            .filter(b => b.type === 'web_fetch_tool_result')
+            .map(b => b.tool_use_id)
+        );
+        let prunedNow = 0;
+        // Walk earlier messages (exclude the assistant message we just pushed).
+        for (let i = 0; i < messages.length - 1; i++) {
+          const msg = messages[i];
+          if (!Array.isArray(msg.content)) continue;
+          for (const block of msg.content) {
+            if (block.type !== 'web_fetch_tool_result') continue;
+            if (currentTurnFetchIds.has(block.tool_use_id)) continue;
+            if (prunedFetchIds.has(block.tool_use_id)) continue;
+            prunedFetchIds.add(block.tool_use_id);
+            prunedNow++;
+          }
+        }
+        if (prunedNow > 0) {
+          addLogItem({
+            icon: '🧹',
+            type: 'system',
+            text: `pruned ${prunedNow} prior fetch${prunedNow === 1 ? '' : 'es'} from context (finding recorded)`
+          });
+        }
+      }
 
       // If the agent called complete_analysis, we're done.
       if (finalReport) {
@@ -1243,6 +1375,7 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
   }
 
   // ---------- Evals ----------
+  const DEMO_DATE = 'April 22, 2026';
   const EVAL_CASES = [
     {
       url: 'https://mattengaspizzeria.com',
