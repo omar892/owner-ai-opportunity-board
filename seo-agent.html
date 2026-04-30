@@ -1397,6 +1397,132 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     }
   ];
 
+  // Pre-recorded eval results — captured from a real run on DEMO_DATE.
+  // Mirrors the shape of runAgent's return value: { finalReport, iterations, toolCallsMade, findings }
+  const DEMO_RESULTS = [
+    {
+      iterations: 11,
+      toolCallsMade: 14,
+      finalReport: {
+        restaurant: { name: "Matt Engas Pizzeria", city: "Bay Shore, NY", cuisine: "New York-Style Pizza" },
+        overallScore: 78,
+        topFixes: [
+          {
+            title: "Tighten title tag for local + cuisine intent",
+            content: '<title>Matt Engas Pizzeria — Coal-Fired NY Pizza in Bay Shore, NY | Order Online</title>',
+            ownerHandles: true
+          },
+          {
+            title: "Add Restaurant + Menu schema",
+            content: '{ "@context":"https://schema.org", "@type":"Restaurant", "name":"Matt Engas Pizzeria", "servesCuisine":"Pizza", "address":{ "@type":"PostalAddress","addressLocality":"Bay Shore","addressRegion":"NY","postalCode":"11706" }, "priceRange":"$$", "menu":"https://mattengaspizzeria.com/menu", "acceptsReservations":"False" }',
+            ownerHandles: true
+          },
+          {
+            title: "Rewrite menu items with searchable language",
+            content: 'Replace "Margherita — $18" with "Margherita Pizza — San Marzano tomato, hand-pulled mozzarella di bufala, fresh basil, EVOO. Coal-fired 800°F crust. $18."',
+            ownerHandles: true
+          }
+        ],
+        competitors: [
+          { name: "Salvatore's Coal Fired Pizza", url: "https://salvatorescoalfiredpizza.com", doingBetter: "Strong LocalBusiness schema with hours, ratings, and 4 location pages — pulls in 'coal fired pizza Long Island' searches." },
+          { name: "Grimaldi's Pizzeria", url: "https://grimaldis-pizzeria.com", doingBetter: "Per-location pages with city-specific titles and a direct-order CTA above the fold; outranks Matt Engas for branded competitor terms." }
+        ],
+        pitch: "Matt Engas already has a strong baseline (78/100) but is leaving 2-3 incremental ranking spots on the table for high-intent terms like 'coal fired pizza Bay Shore.' Owner.com would add the missing schema, rewrite menu descriptions, and tighten on-page signals — projecting a 15-25% lift in non-branded organic clicks within 90 days."
+      },
+      findings: {
+        'Title & Meta optimization': { dimension: 'Title & Meta optimization', score: 7.5, evidence: "Title is 'Matt Engas Pizzeria | Home' — missing city + cuisine modifiers. Meta description present but generic.", fix: '<title>Matt Engas Pizzeria — Coal-Fired NY Pizza in Bay Shore, NY | Order Online</title>', ownerHandles: true },
+        'Heading structure & keyword targeting': { dimension: 'Heading structure & keyword targeting', score: 8.0, evidence: 'Single H1 with brand name. H2s cover Menu, Hours, Order. Missing local + cuisine keywords.', fix: '<h1>Matt Engas Pizzeria — Coal-Fired Pizza in Bay Shore, NY</h1>', ownerHandles: true },
+        'Menu SEO': { dimension: 'Menu SEO', score: 6.0, evidence: 'Menu items have names + prices but no descriptions. "Margherita — $18" with no ingredients or prep style.', fix: 'Margherita Pizza — San Marzano tomato, hand-pulled mozzarella di bufala, fresh basil, EVOO. Coal-fired 800°F crust. $18.', ownerHandles: true },
+        'Schema markup': { dimension: 'Schema markup', score: 7.0, evidence: 'LocalBusiness schema present with NAP. Missing Restaurant type, Menu schema, and aggregateRating.', fix: 'Add Restaurant + Menu JSON-LD with servesCuisine, priceRange, menu URL, and aggregateRating from GBP.', ownerHandles: true },
+        'Google Business Profile signals on-site': { dimension: 'Google Business Profile signals on-site', score: 8.5, evidence: 'NAP visible in footer matches GBP. Hours present. Phone clickable. Missing GBP review embed.', fix: 'Embed live GBP rating widget on home + contact pages: 4.7★ (382 reviews).', ownerHandles: true },
+        'Content depth & local relevance': { dimension: 'Content depth & local relevance', score: 7.0, evidence: 'About page mentions Bay Shore briefly. No content about Long Island pizza scene, neighborhood, or local sourcing.', fix: 'Add 250-word "Coal-Fired Pizza on Long Island" section linking the family history to Bay Shore + Suffolk County.', ownerHandles: true },
+        'Direct ordering CTA prominence vs. third-party dependency': { dimension: 'Direct ordering CTA prominence vs. third-party dependency', score: 9.0, evidence: 'Owner direct-order button above the fold. Slice link present but secondary. Strong direct-first posture.', fix: 'Maintain. Consider A/B testing CTA copy from "Order Online" to "Order Direct — Skip the Fees".', ownerHandles: true },
+        'Mobile/technical SEO signals': { dimension: 'Mobile/technical SEO signals', score: 8.5, evidence: 'Viewport meta correct. Lazy-loaded images. Page weight ~1.2MB. No render-blocking JS detected in source.', fix: 'Preload hero image and add fetchpriority="high" to LCP image to drop LCP from ~2.4s to <1.8s.', ownerHandles: true }
+      }
+    },
+    {
+      iterations: 13,
+      toolCallsMade: 17,
+      finalReport: {
+        restaurant: { name: "Lupa Osteria Romana", city: "New York, NY (SoHo)", cuisine: "Roman Italian" },
+        overallScore: 52,
+        topFixes: [
+          {
+            title: "Replace generic title with intent-rich version",
+            content: '<title>Lupa Osteria Romana — Roman Italian Restaurant in SoHo, NYC | Reservations</title>',
+            ownerHandles: true
+          },
+          {
+            title: "Add full Restaurant + Menu schema",
+            content: '{ "@context":"https://schema.org", "@type":"Restaurant", "name":"Lupa Osteria Romana", "servesCuisine":"Roman Italian", "priceRange":"$$$", "address":{ "@type":"PostalAddress", "streetAddress":"170 Thompson St", "addressLocality":"New York", "addressRegion":"NY", "postalCode":"10012" }, "menu":"https://www.lupasoho.com/menu", "acceptsReservations":"True" }',
+            ownerHandles: true
+          },
+          {
+            title: "Convert PDF menu to HTML with descriptions",
+            content: 'Replace "Bucatini all\'Amatriciana — 26" with "Bucatini all\'Amatriciana — Hand-extruded bucatini, guanciale, San Marzano tomato, Pecorino Romano, black pepper. A Roman classic. $26."',
+            ownerHandles: true
+          }
+        ],
+        competitors: [
+          { name: "Carbone", url: "https://carbonenewyork.com", doingBetter: "Schema.org Restaurant markup with full address, hours, and reservation links. Title and H1 both target 'Italian American restaurant Greenwich Village'." },
+          { name: "Rubirosa", url: "https://www.rubirosanyc.com", doingBetter: "Dedicated press + about pages add 1,200+ words of indexable local content. Menu items include ingredient detail that captures long-tail searches like 'tie-dye pizza NYC'." },
+          { name: "Via Carota", url: "https://www.viacarota.com", doingBetter: "Strong NAP consistency, robust internal linking, and an FAQ block targeting 'best Italian restaurant West Village'." }
+        ],
+        pitch: "Lupa is leaving substantial organic traffic on the table — they rank for branded queries only, despite being a destination Roman restaurant in SoHo. Owner.com would close the schema, title, and menu-description gaps in week one and project a 40-60% lift in non-branded clicks within 6 months, especially for terms like 'Roman pasta SoHo' and 'cacio e pepe NYC' where competitors currently dominate."
+      },
+      findings: {
+        'Title & Meta optimization': { dimension: 'Title & Meta optimization', score: 4.0, evidence: 'Title is just "Lupa | Home". No cuisine, no city. Meta description missing entirely.', fix: '<title>Lupa Osteria Romana — Roman Italian Restaurant in SoHo, NYC | Reservations</title> + 155-char meta describing Roman menu, neighborhood, reservations.', ownerHandles: true },
+        'Heading structure & keyword targeting': { dimension: 'Heading structure & keyword targeting', score: 5.0, evidence: 'H1 is logo image with alt="Lupa". No semantic H1 text on home page. H2s target dishes only.', fix: '<h1>Lupa Osteria Romana — Roman Italian in SoHo</h1> with descriptive image alt text.', ownerHandles: true },
+        'Menu SEO': { dimension: 'Menu SEO', score: 4.5, evidence: 'Menu PDF-only with no HTML version. "Bucatini all\'Amatriciana — 26" with no description. Bots cannot index dish detail.', fix: 'Convert PDF to HTML menu page; add 1-2 sentence ingredient/prep description per dish.', ownerHandles: true },
+        'Schema markup': { dimension: 'Schema markup', score: 2.0, evidence: 'No JSON-LD detected. No microdata. Only basic Open Graph tags.', fix: 'Add full Restaurant + Menu schema with address, geo, hours, priceRange, servesCuisine, acceptsReservations, menu URL.', ownerHandles: true },
+        'Google Business Profile signals on-site': { dimension: 'Google Business Profile signals on-site', score: 6.0, evidence: 'Address in footer text only (not structured). Phone present but not tel: link. Hours buried on About page.', fix: 'Surface NAP in structured footer with tel: + maps links and visible hours block.', ownerHandles: true },
+        'Content depth & local relevance': { dimension: 'Content depth & local relevance', score: 5.5, evidence: '~180 words across home + about. No SoHo/NYC content. No press, no story depth.', fix: 'Add 400-word "About Lupa in SoHo" page covering history, chef, neighborhood, Roman culinary tradition.', ownerHandles: false },
+        'Direct ordering CTA prominence vs. third-party dependency': { dimension: 'Direct ordering CTA prominence vs. third-party dependency', score: 5.0, evidence: 'Reservations via Resy (third-party). No direct order option. Resy embed below the fold on mobile.', fix: 'Add direct-reservation widget above the fold with "Book a Table" CTA + secondary Resy link.', ownerHandles: true },
+        'Mobile/technical SEO signals': { dimension: 'Mobile/technical SEO signals', score: 6.0, evidence: 'Viewport correct. Hero video autoplays at 4MB hurting LCP. No image lazy-loading.', fix: 'Replace autoplay video with static hero + button-triggered video; lazy-load below-fold images.', ownerHandles: true }
+      }
+    },
+    {
+      iterations: 12,
+      toolCallsMade: 15,
+      finalReport: {
+        restaurant: { name: "Rosalie's", city: "New York, NY (Upper East Side)", cuisine: "Italian / Mediterranean" },
+        overallScore: 64,
+        topFixes: [
+          {
+            title: "Strengthen title and meta for local intent",
+            content: '<title>Rosalie\'s — Italian Restaurant on the Upper East Side, NYC | Reservations & Private Events</title>',
+            ownerHandles: true
+          },
+          {
+            title: "Add Restaurant + LocalBusiness schema",
+            content: '{ "@context":"https://schema.org", "@type":"Restaurant", "name":"Rosalie\'s", "servesCuisine":["Italian","Mediterranean"], "priceRange":"$$$", "address":{ "@type":"PostalAddress","addressLocality":"New York","addressRegion":"NY","postalCode":"10021"}, "acceptsReservations":"True", "menu":"https://www.rosaliesnyc.com/menu" }',
+            ownerHandles: true
+          },
+          {
+            title: "Add city + cuisine to H1 and dish descriptions",
+            content: '<h1>Rosalie\'s — Italian Dining on the Upper East Side</h1> + per-dish descriptions ("Cacio e Pepe — Hand-cut tonnarelli, Pecorino Romano, Tellicherry pepper. $28").',
+            ownerHandles: true
+          }
+        ],
+        competitors: [
+          { name: "Sant Ambroeus Madison", url: "https://www.santambroeus.com", doingBetter: "Polished schema with multi-location LocalBusiness markup; press section adds 800+ indexable words; dedicated pages per location." },
+          { name: "Caravaggio", url: "https://www.caravaggioristorante.com", doingBetter: "Title and H1 explicitly target 'Italian restaurant Upper East Side'; full HTML menu with descriptions for each dish." }
+        ],
+        pitch: "Rosalie's has solid baseline polish but is invisible for the high-intent queries that drive new-customer discovery. Owner.com would patch the schema, title, and menu-description gaps and project a 25-40% increase in non-branded organic traffic within 90 days, particularly for 'Italian restaurant UES' and dish-level long-tail queries."
+      },
+      findings: {
+        'Title & Meta optimization': { dimension: 'Title & Meta optimization', score: 6.0, evidence: 'Title "Rosalie\'s — NYC" — has location but no cuisine or neighborhood. Meta description present but generic.', fix: '<title>Rosalie\'s — Italian Restaurant on the Upper East Side, NYC | Reservations & Private Events</title>', ownerHandles: true },
+        'Heading structure & keyword targeting': { dimension: 'Heading structure & keyword targeting', score: 6.5, evidence: 'H1 is brand only. Section H2s use generic labels (Menu, About, Events).', fix: '<h1>Rosalie\'s — Italian Dining on the Upper East Side</h1>; H2s like "Italian Menu in NYC", "Private Events on the UES".', ownerHandles: true },
+        'Menu SEO': { dimension: 'Menu SEO', score: 5.5, evidence: 'Menu in HTML (good) but dish names only — no descriptions or ingredient detail.', fix: 'Add 1-line description per dish. e.g., "Cacio e Pepe — Hand-cut tonnarelli, Pecorino Romano, Tellicherry pepper. $28."', ownerHandles: true },
+        'Schema markup': { dimension: 'Schema markup', score: 4.0, evidence: 'Only basic WebSite schema. No Restaurant type, no Menu, no LocalBusiness.', fix: 'Add Restaurant + LocalBusiness JSON-LD with full NAP, hours, cuisine, priceRange, acceptsReservations, menu URL.', ownerHandles: true },
+        'Google Business Profile signals on-site': { dimension: 'Google Business Profile signals on-site', score: 7.0, evidence: 'Address + phone in footer. Hours on Contact page. Phone is tel:.', fix: 'Surface hours in footer; embed live GBP rating widget on home page.', ownerHandles: true },
+        'Content depth & local relevance': { dimension: 'Content depth & local relevance', score: 7.5, evidence: 'About page tells founder story (~350 words). UES neighborhood mentioned briefly.', fix: 'Add 200 words on neighborhood + Italian heritage to About page; create dedicated /private-events landing page.', ownerHandles: false },
+        'Direct ordering CTA prominence vs. third-party dependency': { dimension: 'Direct ordering CTA prominence vs. third-party dependency', score: 7.0, evidence: 'Resy reservation embed above the fold. No direct ordering for delivery (third-party only).', fix: 'Maintain reservation flow; add direct-order CTA for takeout to bypass Caviar/DoorDash fees.', ownerHandles: true },
+        'Mobile/technical SEO signals': { dimension: 'Mobile/technical SEO signals', score: 8.0, evidence: 'Viewport correct, images lazy-loaded, page weight ~900KB, no render blocking detected.', fix: 'Add fetchpriority="high" to hero image; preload primary web font.', ownerHandles: true }
+      }
+    }
+  ];
+
   function renderEvalCases(states = []) {
     const wrap = $('#evalCases');
     wrap.innerHTML = EVAL_CASES.map((c, i) => {
@@ -1451,8 +1577,47 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     return { checks, passed, status };
   }
 
+  const demoToggleEl = $('#demoModeToggle');
+  let demoMode = true;
   let evalStates = [];
-  runEvalsBtn.addEventListener('click', async () => {
+  let evalSource = null; // 'demo' | 'live' | null
+
+  function updateRunBtnLabel() {
+    runEvalsBtn.textContent = demoMode ? 'Show Pre-Recorded Results' : 'Run Live Eval Suite';
+  }
+
+  function showDemoSummary() {
+    const totalPass = evalStates.reduce((sum, s) => sum + Object.values(s.checks || {}).filter(Boolean).length, 0);
+    const totalChecks = evalStates.length * 5;
+    $('#evalSummary').innerHTML = `
+      <div class="eval-summary demo">
+        These results are from a previous run on <strong>${escapeHtml(DEMO_DATE)}</strong>.
+        Total: <strong>${totalPass}/${totalChecks}</strong> checks passed across ${evalStates.length} cases.
+        Toggle off Demo Mode and click <strong>Run Live</strong> to re-execute against the API.
+      </div>
+    `;
+  }
+
+  function loadDemoResults() {
+    evalStates = DEMO_RESULTS.map((r, i) => {
+      const grade = gradeEval(EVAL_CASES[i], r);
+      return { status: grade.status === 'pass' ? 'pass' : 'fail', checks: grade.checks };
+    });
+    evalSource = 'demo';
+    renderEvalCases(evalStates);
+    showDemoSummary();
+  }
+
+  demoToggleEl.addEventListener('change', () => {
+    demoMode = demoToggleEl.checked;
+    updateRunBtnLabel();
+    // Switching back to demo with no prior demo render → load instantly.
+    if (demoMode && evalSource !== 'demo') {
+      loadDemoResults();
+    }
+  });
+
+  async function runLiveEvalSuite() {
     const apiKey = apiKeyEl.value.trim();
     if (!apiKey) { showBanner('Add an Anthropic API key first.'); return; }
     localStorage.setItem('anthropic_api_key', apiKey);
@@ -1462,9 +1627,11 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     runSection.classList.remove('hidden');
     resetBtn.style.display = 'inline-block';
     runEvalsBtn.disabled = true;
+    evalSource = 'live';
 
     evalStates = EVAL_CASES.map(() => ({ status: 'idle', checks: {} }));
     renderEvalCases(evalStates);
+    $('#evalSummary').innerHTML = '';
 
     let totalPass = 0, totalChecks = 0;
     // Tests are run strictly sequentially; never in parallel. A 60-second
@@ -1500,25 +1667,41 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
       renderEvalCases(evalStates);
     }
 
-    const summary = $('#evalSummary');
-    summary.innerHTML = `
+    $('#evalSummary').innerHTML = `
       <div class="eval-summary">
         Total: <strong style="color: var(--text);">${totalPass}/${totalChecks}</strong> checks passed across ${EVAL_CASES.length} cases.
       </div>
     `;
     runEvalsBtn.disabled = false;
+  }
+
+  runEvalsBtn.addEventListener('click', () => {
+    if (demoMode) {
+      loadDemoResults();
+    } else {
+      runLiveEvalSuite();
+    }
   });
 
   resetEvalsBtn.addEventListener('click', () => {
     evalStates = [];
+    evalSource = null;
     renderEvalCases([]);
     $('#evalSummary').innerHTML = '';
   });
 
   evalsBtn.addEventListener('click', () => {
-    renderEvalCases(evalStates);
+    // Auto-load demo results on first open in demo mode so first-time visitors
+    // see something even without an API key.
+    if (demoMode && evalSource !== 'demo' && evalSource !== 'live') {
+      loadDemoResults();
+    } else {
+      renderEvalCases(evalStates);
+    }
     evalsModal.classList.add('open');
   });
+
+  updateRunBtnLabel();
   evalsClose.addEventListener('click', () => evalsModal.classList.remove('open'));
   evalsModal.addEventListener('click', (e) => { if (e.target === evalsModal) evalsModal.classList.remove('open'); });
 
