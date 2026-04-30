@@ -928,6 +928,20 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
       try { txt = await resp.text(); } catch {}
       throw new Error(`API error ${resp.status}: ${txt || resp.statusText}`);
     }
+
+    // Pull rate-limit headers (CORS-exposed by Anthropic). Graceful if missing.
+    const rateLimits = {};
+    try {
+      const numOrNull = (h) => {
+        const v = resp.headers.get(h);
+        return v == null ? null : Number(v);
+      };
+      rateLimits.inputTokensLimit     = numOrNull('anthropic-ratelimit-input-tokens-limit');
+      rateLimits.inputTokensRemaining = numOrNull('anthropic-ratelimit-input-tokens-remaining');
+      rateLimits.inputTokensReset     = resp.headers.get('anthropic-ratelimit-input-tokens-reset');
+      rateLimits.outputTokensRemaining = numOrNull('anthropic-ratelimit-output-tokens-remaining');
+    } catch {}
+
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buf = '';
@@ -935,6 +949,7 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     const blocks = [];     // assembled content blocks for the assistant message
     const partial = {};    // index -> partial state {type, text|input_json}
     let stopReason = null;
+    let usage = null;
 
     const handleEvent = (eventName, data) => {
       try { data = JSON.parse(data); } catch { return; }
@@ -974,8 +989,11 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
           if (onToolUse) onToolUse({ phase: 'stop', name: p.name, id: p.id, input: p.input, server: p.type === 'server_tool_use' });
         }
         blocks[idx] = p;
+      } else if (eventName === 'message_start') {
+        if (data.message && data.message.usage) usage = { ...data.message.usage };
       } else if (eventName === 'message_delta') {
         if (data.delta && data.delta.stop_reason) stopReason = data.delta.stop_reason;
+        if (data.usage) usage = { ...(usage || {}), ...data.usage };
       } else if (eventName === 'message_stop') {
         // done
       } else if (eventName === 'error') {
@@ -1017,20 +1035,62 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
         }
         return out;
       });
-    return { role: 'assistant', content: finalContent, stop_reason: stopReason };
+    return { role: 'assistant', content: finalContent, stop_reason: stopReason, usage, rateLimits };
+  }
+
+  // ---------- Cooldown ----------
+  // Sequential-only; we explicitly pause between calls to stay under the
+  // 30K input-tokens/min rate limit. Visible in the activity log + iter counter.
+  async function cooldown(seconds, reason) {
+    const item = addLogItem({ icon: '⏸', type: 'system', text: `Cooling down (${seconds}s)… ${reason}` });
+    const body = item.querySelector('.body');
+    const prevIter = iterCountEl.textContent;
+    const counterParent = iterCountEl.parentElement;
+    const prevCounterHtml = counterParent.innerHTML;
+    for (let s = seconds; s > 0; s--) {
+      body.textContent = `Cooling down (${s}s)… ${reason}`;
+      counterParent.innerHTML = `<span style="color: var(--owner-300); font-weight:700;">⏸ Cooling down (${s}s)</span>`;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    body.textContent = `Cooldown complete — resuming.`;
+    counterParent.innerHTML = prevCounterHtml;
+    iterCountEl.textContent = prevIter;
   }
 
   // ---------- Agent runner ----------
+  // Rate-limit awareness: estimate next iteration's input tokens from the
+  // previous call (usage.input_tokens or rate-limit headers). If it would
+  // exceed 25K (with 30K/min limit), cooldown 60s before continuing.
+  const ITER_TOKEN_THRESHOLD = 25000;
+  const ITER_COOLDOWN_SECONDS = 60;
+
   async function runAgent({ apiKey, url, hooks = {} }) {
     const messages = [{ role: 'user', content: `Analyze ${url}. Produce a full SEO gap report.` }];
     let iterations = 0;
     let finalReport = null;
     let toolCallsMade = 0;
     const findings = {};
+    let lastUsage = null;
+    let lastRateLimits = null;
 
     while (iterations < MAX_ITERATIONS) {
       iterations++;
       hooks.onIter?.(iterations);
+
+      // Pre-iteration cooldown: estimate from previous call's input_tokens or
+      // remaining rate-limit window. If next iteration would exceed 25K, pause.
+      if (iterations > 1) {
+        const lastInput = lastUsage?.input_tokens ?? 0;
+        const remaining = lastRateLimits?.inputTokensRemaining;
+        const wouldExceed = lastInput >= ITER_TOKEN_THRESHOLD;
+        const headerSaysLow = (typeof remaining === 'number') && remaining < ITER_TOKEN_THRESHOLD;
+        if (wouldExceed || headerSaysLow) {
+          const reason = wouldExceed
+            ? `last iteration sent ${lastInput.toLocaleString()} input tokens (>25K threshold)`
+            : `${remaining.toLocaleString()} input tokens remaining in rate-limit window`;
+          await cooldown(ITER_COOLDOWN_SECONDS, reason);
+        }
+      }
 
       let currentTextItem = null;
       let assistantMsg;
@@ -1079,6 +1139,20 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
       } catch (e) {
         addLogItem({ icon: '⚠️', type: 'error', text: `API error: ${e.message}` });
         throw e;
+      }
+
+      lastUsage = assistantMsg.usage;
+      lastRateLimits = assistantMsg.rateLimits;
+      if (lastUsage && typeof lastUsage.input_tokens === 'number') {
+        const out = lastUsage.output_tokens ?? '?';
+        addLogItem({
+          icon: '📊',
+          type: 'system',
+          text: `usage · in=${lastUsage.input_tokens.toLocaleString()}  out=${out.toLocaleString?.() ?? out}` +
+                (lastRateLimits?.inputTokensRemaining != null
+                  ? `  · remaining=${lastRateLimits.inputTokensRemaining.toLocaleString()}/${(lastRateLimits.inputTokensLimit ?? 0).toLocaleString()}`
+                  : '')
+        });
       }
 
       messages.push({ role: 'assistant', content: assistantMsg.content });
@@ -1260,8 +1334,16 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     renderEvalCases(evalStates);
 
     let totalPass = 0, totalChecks = 0;
+    // Tests are run strictly sequentially; never in parallel. A 60-second
+    // cooldown between cases keeps us under the 30K input-tokens/min limit.
+    const EVAL_COOLDOWN_SECONDS = 60;
     for (let i = 0; i < EVAL_CASES.length; i++) {
       const c = EVAL_CASES[i];
+
+      if (i > 0) {
+        await cooldown(EVAL_COOLDOWN_SECONDS, `between eval cases (${i+1}/${EVAL_CASES.length} next)`);
+      }
+
       evalStates[i] = { status: 'running', checks: {} };
       renderEvalCases(evalStates);
 
