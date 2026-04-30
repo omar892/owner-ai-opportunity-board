@@ -95,6 +95,23 @@
     color: var(--ink-500); background: var(--ink-100); border: 1px solid var(--ink-200);
     padding: 2px 6px; border-radius: 4px;
   }
+  .mode-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: var(--sans); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 3px 8px; border-radius: 999px; cursor: pointer;
+    transition: filter 0.15s ease;
+    user-select: none;
+  }
+  .mode-pill:hover { filter: brightness(0.95); }
+  .mode-pill .mode-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .mode-pill.demo {
+    color: var(--blue); background: var(--blue-soft); border: 1px solid #BFD6F0;
+  }
+  .mode-pill.live {
+    color: var(--owner-700); background: var(--owner-50); border: 1px solid var(--owner-200);
+  }
+  .mode-pill.live .mode-dot { animation: pulse 1.5s ease-in-out infinite; }
   .brand-sub { color: var(--ink-500); font-size: 11.5px; }
   .topbar-actions { display: flex; gap: 8px; align-items: center; }
   .btn {
@@ -142,7 +159,33 @@
     color: var(--owner-700); background: var(--owner-50); padding: 2px 6px; border-radius: 4px;
     font-family: var(--mono); font-size: 11px; border: 1px solid var(--owner-100);
   }
+  /* Demo mode banner on input section */
+  .demo-banner {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--blue-soft); border: 1px solid #BFD6F0; border-radius: 10px;
+    padding: 14px 16px; margin: 0 0 24px;
+    text-align: left;
+  }
+  .demo-banner.hidden-soft { display: none; }
+  .demo-banner-icon { font-size: 20px; line-height: 1.2; flex-shrink: 0; }
+  .demo-banner-title {
+    font-family: var(--sans); font-weight: 600; font-size: 14px; color: var(--blue);
+    margin-bottom: 2px;
+  }
+  .demo-banner-sub {
+    font-size: 12.5px; color: var(--ink-700); line-height: 1.55;
+  }
+  .demo-banner-sub strong { color: var(--ink-900); }
+  .link-btn {
+    background: none; border: none; padding: 0;
+    color: var(--blue); font-weight: 600; text-decoration: underline; text-underline-offset: 2px;
+    font-family: inherit; font-size: inherit; cursor: pointer;
+  }
+  .link-btn:hover { color: var(--owner-700); }
+
   .preset-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+  .preset.is-demo { color: var(--blue); border-color: #BFD6F0; background: var(--blue-soft); }
+  .preset.is-demo:hover { color: var(--owner-700); border-color: var(--owner-300); background: var(--owner-50); }
   .preset {
     background: var(--surface); border: 1px solid var(--border); color: var(--ink-600);
     padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: var(--mono);
@@ -449,6 +492,93 @@
   ::-webkit-scrollbar-thumb:hover { background: var(--ink-300); background-clip: padding-box; border: 2px solid transparent; }
   .panel.left::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); background-clip: padding-box; }
   .panel.left::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); background-clip: padding-box; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 768px) {
+    .topbar {
+      flex-wrap: wrap; padding: 10px 14px; gap: 8px;
+    }
+    .brand-sub { display: none; }
+    .brand-mark { font-size: 14px; gap: 6px; }
+    .topbar-actions {
+      width: 100%; flex-wrap: wrap; gap: 6px;
+    }
+    .key-input {
+      flex: 1 1 auto; min-width: 0; width: auto; font-size: 12px;
+    }
+
+    .input-section {
+      margin: 32px auto 24px; padding: 0 16px;
+    }
+    .h1 { font-size: 26px; }
+    .lede { font-size: 13.5px; margin-bottom: 20px; }
+    .url-row { flex-direction: column; gap: 10px; }
+    .url-input {
+      width: 100%;
+      /* 16px prevents iOS Safari from zooming on focus */
+      font-size: 16px;
+    }
+    .run-btn { width: 100%; }
+    .input-hint { font-size: 11.5px; }
+    .preset-row { gap: 6px; }
+    .preset { font-size: 11px; padding: 5px 9px; }
+
+    .demo-banner {
+      gap: 10px; padding: 12px 14px; margin-bottom: 18px;
+    }
+    .demo-banner-icon { font-size: 18px; }
+    .demo-banner-title { font-size: 13px; }
+    .demo-banner-sub { font-size: 12px; }
+
+    .run-section {
+      grid-template-columns: 1fr;
+      height: auto; min-height: calc(100vh - 53px);
+    }
+    .panel { padding: 16px; }
+    .panel.left {
+      max-height: 38vh;
+      border-right: none; border-bottom: 1px solid var(--border);
+    }
+    .panel.right { max-height: none; }
+
+    .header-card { padding: 14px 16px; }
+    .header-card .name { font-size: 20px; }
+    .gauge-card {
+      flex-direction: column; align-items: flex-start;
+      gap: 14px; padding: 16px;
+    }
+    .gauge-svg { align-self: center; width: 120px; height: 120px; }
+    .gauge-info .num { font-size: 32px; }
+
+    .dim-row { padding: 12px 14px; }
+    .fix-card, .comp-card { padding: 12px 14px; }
+    .fix-card .fix-content { font-size: 11.5px; padding: 10px 12px; }
+    .pitch-card { padding: 16px 18px; }
+    .pitch-card .pitch-text { font-size: 15px; }
+
+    .modal {
+      width: 94vw; max-height: 90vh; padding: 18px;
+      border-radius: 10px;
+    }
+    .modal-head h2 { font-size: 19px; }
+    .demo-toggle { padding: 10px 12px; }
+    .demo-toggle .toggle-title { font-size: 12.5px; }
+    .demo-toggle .toggle-sub { font-size: 11px; }
+
+    .iter-counter { font-size: 10.5px; }
+    .footer { padding: 16px 14px; font-size: 11.5px; }
+  }
+
+  @media (max-width: 480px) {
+    .topbar { padding: 8px 12px; }
+    .brand-logo { width: 24px; height: 24px; font-size: 12px; border-radius: 5px; }
+    .h1 { font-size: 22px; }
+    .lede { font-size: 13px; }
+    .demo-banner { flex-direction: column; }
+    .demo-banner-icon { font-size: 22px; }
+    .panel.left { max-height: 32vh; }
+    .modal { padding: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -457,12 +587,17 @@
   <div class="brand">
     <div class="brand-logo">O</div>
     <div class="brand-text">
-      <div class="brand-mark">Owner SEO Agent <span class="badge">Internal</span></div>
+      <div class="brand-mark">
+        Owner SEO Agent
+        <span class="mode-pill demo" id="modePill" title="Demo mode is on. Toggle off to run live against the API.">
+          <span class="mode-dot"></span>Demo Mode
+        </span>
+      </div>
       <span class="brand-sub">Built by Omar Abbasi · Applied AI Lead candidate</span>
     </div>
   </div>
   <div class="topbar-actions">
-    <input id="apiKey" class="key-input" type="password" placeholder="sk-ant-... (API key)" autocomplete="off" />
+    <input id="apiKey" class="key-input" type="password" placeholder="API key (optional, for live runs)" autocomplete="off" />
     <button class="btn btn-ghost" id="evalsBtn">Evals</button>
     <button class="btn btn-ghost" id="resetBtn" style="display:none;">New Run</button>
   </div>
@@ -473,16 +608,31 @@
   <section class="input-section" id="inputSection">
     <h1 class="h1">Restaurant in. <em>Prioritized</em> SEO gap report out.</h1>
     <p class="lede">A real agentic loop &mdash; Claude decides what to fetch, which competitors to research, and when it has enough evidence. Mirrors exactly what Owner.com&rsquo;s AI platform automates for independent restaurants.</p>
+
+    <div class="demo-banner" id="demoBanner">
+      <div class="demo-banner-icon">📦</div>
+      <div class="demo-banner-text">
+        <div class="demo-banner-title">Demo Mode is on — no API key needed</div>
+        <div class="demo-banner-sub">
+          Click a preset below to load a pre-recorded run from <strong>April 22, 2026</strong> instantly.
+          To run live against any URL, add an API key above and
+          <button class="link-btn" id="disableDemoLink" type="button">turn off Demo Mode</button>.
+        </div>
+      </div>
+    </div>
+
     <div class="url-row">
       <input id="urlInput" class="url-input" type="text" placeholder="https://www.somerestaurant.com" />
-      <button id="runBtn" class="btn btn-primary run-btn">Run Agent</button>
+      <button id="runBtn" class="btn btn-primary run-btn">View Demo Run</button>
     </div>
     <div class="preset-row">
       <span class="preset" data-url="https://mattengaspizzeria.com">mattengaspizzeria.com</span>
       <span class="preset" data-url="https://www.lupasoho.com">lupasoho.com</span>
       <span class="preset" data-url="https://www.rosaliesnyc.com">rosaliesnyc.com</span>
     </div>
-    <p class="input-hint">Add your Anthropic API key in the top-right (stored only in your browser&rsquo;s localStorage). Uses <code>claude-opus-4-7</code> with server-side <code>web_search</code> + <code>web_fetch</code>.</p>
+    <p class="input-hint" id="liveHint" style="display:none;">
+      API key is stored only in your browser&rsquo;s localStorage. Uses <code>claude-opus-4-7</code> with server-side <code>web_search</code> + <code>web_fetch</code>.
+    </p>
     <div id="apiBanner"></div>
   </section>
 
@@ -712,6 +862,10 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
   const apiBannerEl = $('#apiBanner');
   const liveDot = $('#liveDot');
   const iterCountEl = $('#iterCount');
+  const modePill = $('#modePill');
+  const demoBanner = $('#demoBanner');
+  const disableDemoLink = $('#disableDemoLink');
+  const liveHint = $('#liveHint');
 
   // ---------- API key ----------
   apiKeyEl.value = localStorage.getItem('anthropic_api_key') || '';
@@ -1377,12 +1531,89 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
     return { finalReport, iterations, toolCallsMade, findings };
   }
 
+  // ---------- Demo mode (global) ----------
+  // demoMode is the single source of truth. setDemoMode updates topbar pill,
+  // input banner, run-button label, hint visibility, and the modal toggle.
+  let demoMode = true;
+
+  function setDemoMode(enabled) {
+    demoMode = enabled;
+    // Topbar pill
+    modePill.classList.toggle('demo', enabled);
+    modePill.classList.toggle('live', !enabled);
+    modePill.querySelector('.mode-pill, span:last-child') ; // no-op guard
+    // We replace the visible label inside the pill (preserve the dot).
+    modePill.innerHTML = enabled
+      ? '<span class="mode-dot"></span>Demo Mode'
+      : '<span class="mode-dot"></span>Live';
+    modePill.title = enabled
+      ? 'Demo mode is on. Toggle off to run live against the API.'
+      : 'Live mode — calls the Anthropic API. Requires an API key.';
+    // Input banner
+    demoBanner.classList.toggle('hidden-soft', !enabled);
+    // Run button label
+    runBtn.textContent = enabled ? 'View Demo Run' : 'Run Agent';
+    // API key hint visibility
+    liveHint.style.display = enabled ? 'none' : 'block';
+    // Highlight presets in demo mode
+    document.querySelectorAll('.preset').forEach(el => {
+      el.classList.toggle('is-demo', enabled);
+    });
+    // Keep the eval modal toggle in sync (defined below in scope).
+    const tgl = document.getElementById('demoModeToggle');
+    if (tgl && tgl.checked !== enabled) tgl.checked = enabled;
+    // If switching to demo and the eval list is showing live results,
+    // refresh it to show the cached demo grades. Guarded — refs may not be
+    // initialized yet during very first call.
+    if (enabled && typeof loadDemoResults === 'function' && evalSource !== 'demo') {
+      loadDemoResults();
+    }
+    if (typeof updateRunBtnLabel === 'function') updateRunBtnLabel();
+  }
+
+  // Replay a pre-recorded run for one of the three demo URLs.
+  function runDemoForUrl(url) {
+    const idx = EVAL_CASES.findIndex(c => c.url === url);
+    if (idx < 0) {
+      showBanner('Demo mode only covers the three preset URLs. Pick a preset, or toggle off Demo Mode and add an API key to run live.');
+      return;
+    }
+    const demo = DEMO_RESULTS[idx];
+
+    inputSection.classList.add('hidden');
+    runSection.classList.remove('hidden');
+    resetBtn.style.display = 'inline-block';
+    logEl.innerHTML = '';
+    resetReport(url);
+    iterCountEl.textContent = String(demo.iterations);
+
+    addLogItem({ icon: '📦', type: 'system', text: `[DEMO] Pre-recorded run from ${DEMO_DATE}. No API call made.` });
+    addLogItem({ icon: '▶︎', type: 'system', text: `Replaying agent run on ${url}` });
+    addLogItem({ icon: '🧠', type: 'thinking', text: `Identified ${demo.finalReport.restaurant.cuisine} restaurant in ${demo.finalReport.restaurant.city}. Researching ${demo.finalReport.competitors.length} competitors.` });
+
+    Object.values(demo.findings).forEach(f => {
+      applyFinding(f);
+      addLogItem({ icon: '✓', type: 'tool', text: `record_finding · ${f.dimension} (${f.score}/10)` });
+    });
+    applyComplete(demo.finalReport);
+    addLogItem({
+      icon: '🎯', type: 'complete',
+      text: `Demo replay complete — ${demo.iterations} iterations, ${demo.toolCallsMade} tool calls (cached).`
+    });
+  }
+
   // ---------- UI: run ----------
   runBtn.addEventListener('click', async () => {
     const url = validateUrl(urlInputEl.value.trim());
-    const apiKey = apiKeyEl.value.trim();
     if (!url) { showBanner('Enter a valid URL.'); return; }
-    if (!apiKey) { showBanner('Add an Anthropic API key in the top-right.'); return; }
+
+    if (demoMode) {
+      runDemoForUrl(url);
+      return;
+    }
+
+    const apiKey = apiKeyEl.value.trim();
+    if (!apiKey) { showBanner('Add an Anthropic API key in the top-right, or turn on Demo Mode.'); return; }
     localStorage.setItem('anthropic_api_key', apiKey);
 
     inputSection.classList.add('hidden');
@@ -1408,6 +1639,11 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
       liveDot.classList.add('idle');
       runBtn.disabled = false;
     }
+  });
+
+  disableDemoLink.addEventListener('click', () => {
+    setDemoMode(false);
+    apiKeyEl.focus();
   });
 
   resetBtn.addEventListener('click', () => {
@@ -1626,7 +1862,7 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
   }
 
   const demoToggleEl = $('#demoModeToggle');
-  let demoMode = true;
+  // demoMode is module-level (declared above with setDemoMode). Reuse it here.
   let evalStates = [];
   let evalSource = null; // 'demo' | 'live' | null
 
@@ -1657,8 +1893,7 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
   }
 
   demoToggleEl.addEventListener('change', () => {
-    demoMode = demoToggleEl.checked;
-    updateRunBtnLabel();
+    setDemoMode(demoToggleEl.checked);
     // Switching back to demo with no prior demo render → load instantly.
     if (demoMode && evalSource !== 'demo') {
       loadDemoResults();
@@ -1753,8 +1988,13 @@ Hard rule: you have at most ${MAX_ITERATIONS} agent iterations. Be efficient wit
   evalsClose.addEventListener('click', () => evalsModal.classList.remove('open'));
   evalsModal.addEventListener('click', (e) => { if (e.target === evalsModal) evalsModal.classList.remove('open'); });
 
+  // Click the topbar pill to flip modes — fast access without opening the modal.
+  modePill.addEventListener('click', () => setDemoMode(!demoMode));
+
   // Initial paint of dimension placeholders so the right panel isn't blank
   renderEvalCases([]);
+  // Apply demo-mode UI state (topbar pill, banner, run-button label, etc.)
+  setDemoMode(true);
 })();
 </script>
 </body>
